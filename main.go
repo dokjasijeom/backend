@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+
+	"github.com/dokjasijeom/backend/configuration"
 )
 
 func main() {
@@ -17,6 +19,7 @@ func main() {
 	app.Use(logger.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
+		configuration.TestDataBase()
 		return c.SendString("Hello, World!")
 	})
 
