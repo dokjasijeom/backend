@@ -2,11 +2,34 @@ package configuration
 
 import (
 	"database/sql"
+	"github.com/dokjasijeom/backend/entity"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"os"
 )
+
+var DB *gorm.DB
+
+func ConnectDatabase() {
+	// Load connection string from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("failed to load env", err)
+	}
+
+	dsn := os.Getenv("DEV_DSN")
+	log.Println(dsn)
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("failed to connect database", err)
+	}
+	// Migrate the schema
+	database.AutoMigrate(&entity.User{})
+	DB = database
+}
 
 func TestDataBase() {
 	// Load connection string from .env file

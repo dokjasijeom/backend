@@ -1,7 +1,14 @@
 package repository
 
+import (
+	"context"
+	"github.com/dokjasijeom/backend/entity"
+)
+
 // user repository with planet scale
 type UserRepository interface {
+	// Authenticate user
+	Authenticate(ctx context.Context, email string) (entity.User, error)
 	// Get all users
 	GetAllUsers() error
 	// Get user by email

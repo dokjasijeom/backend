@@ -13,6 +13,8 @@ import (
 func main() {
 	app := fiber.New()
 
+	configuration.ConnectDatabase()
+
 	app.Use(helmet.New())
 	app.Use(csrf.New())
 	app.Use(limiter.New())
