@@ -13,7 +13,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDatabase() {
+func ConnectDatabase() *gorm.DB {
 	// Load connection string from .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -21,14 +21,14 @@ func ConnectDatabase() {
 	}
 
 	dsn := os.Getenv("DEV_DSN")
-	log.Println(dsn)
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database", err)
 	}
 	// Migrate the schema
 	database.AutoMigrate(&entity.User{})
-	DB = database
+
+	return database
 }
 
 func TestDataBase() {
