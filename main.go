@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/dokjasijeom/backend/controller"
+	"github.com/dokjasijeom/backend/exception"
 	repository "github.com/dokjasijeom/backend/repository/impl"
 	service "github.com/dokjasijeom/backend/service/impl"
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	app := fiber.New()
+	config := configuration.New()
 
 	database := configuration.ConnectDatabase()
 
@@ -27,8 +28,10 @@ func main() {
 	userService := service.NewUserServiceImpl(&userRepository)
 
 	// controller
-	userController := controller.NewUserController(&userService)
+	userController := controller.NewUserController(&userService, config)
 
+	// setup fiber
+	app := fiber.New(configuration.NewFiberConfiguration())
 	app.Use(helmet.New())
 	app.Use(csrf.New())
 	app.Use(limiter.New())
@@ -42,5 +45,6 @@ func main() {
 	//	return c.SendString("Hello, World!")
 	//})
 
-	app.Listen(":3000")
+	err := app.Listen(":3000")
+	exception.PanicLogging(err)
 }

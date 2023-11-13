@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
 )
@@ -21,9 +22,14 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 	panic("implement me")
 }
 
-func (userRepository *userRepositoryImpl) GetUserByEmail(email string) error {
-	//TODO implement me
-	panic("implement me")
+func (userRepository *userRepositoryImpl) GetUserByEmail(email string) entity.User {
+	var userResult entity.User
+	result := userRepository.DB.Where("user.email = ?", email).Find(&userResult)
+	if result.RowsAffected == 0 {
+		exception.PanicLogging("user not found")
+	}
+
+	return userResult
 }
 
 func (userRepository *userRepositoryImpl) GetUserByEmailAndPassword(email, password string) error {
@@ -32,8 +38,14 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndPassword(email, passw
 }
 
 func (userRepository *userRepositoryImpl) CreateUser(email, password string) error {
-	//TODO implement me
-	panic("implement me")
+	var userResult entity.User
+	userResult.Email = email
+	userResult.Password = password
+	result := userRepository.DB.Create(&userResult)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (userRepository *userRepositoryImpl) UpdateUserByEmail(email string) error {

@@ -27,6 +27,7 @@ func ConnectDatabase() *gorm.DB {
 	}
 	// Migrate the schema
 	database.AutoMigrate(&entity.User{})
+	database.AutoMigrate(&entity.UserRole{})
 
 	return database
 }

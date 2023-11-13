@@ -6,10 +6,11 @@ import (
 )
 
 type User struct {
-	Id        uint   `gorm:"primaryKey;column:id;type:int;not null;primaryKey;autoIncrement"`
-	HashId    string `gorm:"column:hash_id;type:varchar(255);not null"`
-	Email     string `gorm:"column:email;type:varchar(255);not null"`
-	Password  string `gorm:"column:password;type:varchar(255);not null"`
+	Id        uint       `gorm:"primaryKey;column:id;type:int;not null;primaryKey;autoIncrement"`
+	HashId    string     `gorm:"column:hash_id;type:varchar(255);not null"`
+	Email     string     `gorm:"column:email;type:varchar(255);not null"`
+	Password  string     `gorm:"column:password;type:varchar(255);not null"`
+	UserRoles []UserRole `gorm:"foreignKey:Id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
