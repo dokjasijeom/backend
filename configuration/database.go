@@ -26,8 +26,9 @@ func ConnectDatabase() *gorm.DB {
 		log.Fatal("failed to connect database", err)
 	}
 	// Migrate the schema
-	database.AutoMigrate(&entity.User{})
+	database.AutoMigrate(&entity.Role{})
 	database.AutoMigrate(&entity.UserRole{})
+	database.AutoMigrate(&entity.User{})
 
 	return database
 }

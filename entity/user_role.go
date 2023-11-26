@@ -7,8 +7,8 @@ import (
 
 type UserRole struct {
 	Id     uuid.UUID `gorm:"primaryKey;column:user_role_id;type:varchar(36)"`
-	Role   string    `gorm:"column:role;type:varchar(10)"`
-	UserId string
+	Roles  []Role    `gorm:"foreignKey:Id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	UserId uint
 }
 
 func (UserRole) TableName() string {

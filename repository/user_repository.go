@@ -12,7 +12,7 @@ type UserRepository interface {
 	// Get all users
 	GetAllUsers() error
 	// Get user by email
-	GetUserByEmail(email string) entity.User
+	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 	// Get user by email and password
 	GetUserByEmailAndPassword(email, password string) error
 	// Create new user

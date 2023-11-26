@@ -41,3 +41,11 @@ func (userService *userServiceImpl) AuthenticateUser(ctx context.Context, email,
 
 	return userResult, nil
 }
+
+func (userService *userServiceImpl) GetUserByEmail(ctx context.Context, email string) entity.User {
+	userResult, err := userService.UserRepository.GetUserByEmail(ctx, email)
+	if err != nil {
+		panic(err)
+	}
+	return userResult
+}

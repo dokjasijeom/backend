@@ -22,14 +22,15 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 	panic("implement me")
 }
 
-func (userRepository *userRepositoryImpl) GetUserByEmail(email string) entity.User {
+func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.Where("user.email = ?", email).Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
 	if result.RowsAffected == 0 {
 		exception.PanicLogging("user not found")
 	}
+	err := result.Error
 
-	return userResult
+	return userResult, err
 }
 
 func (userRepository *userRepositoryImpl) GetUserByEmailAndPassword(email, password string) error {

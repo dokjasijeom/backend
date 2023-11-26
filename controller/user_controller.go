@@ -46,7 +46,7 @@ func (controller UserController) AuthenticateUser(ctx *fiber.Ctx) error {
 	var userRoles []map[string]interface{}
 	for _, userRole := range result.UserRoles {
 		userRoles = append(userRoles, map[string]interface{}{
-			"role": userRole.Role,
+			"role": userRole.Roles,
 		})
 	}
 	tokenJwtResult := common.GenerateToken(result.Email, userRoles, controller.Config)
@@ -91,7 +91,7 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 	var userRoles []map[string]interface{}
 	for _, userRole := range result.UserRoles {
 		userRoles = append(userRoles, map[string]interface{}{
-			"role": userRole.Role,
+			"role": userRole.Roles,
 		})
 	}
 	tokenJwtResult := common.GenerateToken(result.Email, userRoles, controller.Config)
