@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dokjasijeom/backend/controller"
 	"github.com/dokjasijeom/backend/exception"
 	repository "github.com/dokjasijeom/backend/repository/impl"
@@ -17,6 +18,7 @@ import (
 
 func main() {
 	config := configuration.New()
+	serverHost := config.Get("SERVER_HOST")
 
 	database := configuration.ConnectDatabase()
 
@@ -48,6 +50,6 @@ func main() {
 	//	return c.SendString("Hello, World!")
 	//})
 
-	err := app.Listen(":3000")
+	err := app.Listen(fmt.Sprintf("%s:3000", serverHost))
 	exception.PanicLogging(err)
 }

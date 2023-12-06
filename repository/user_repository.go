@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/dokjasijeom/backend/common"
 	"github.com/dokjasijeom/backend/entity"
 )
 
@@ -21,4 +22,12 @@ type UserRepository interface {
 	UpdateUserByEmail(email string) error
 	// Delete user by email
 	DeleteUserByEmail(email string) error
+	// Generate Random Salt
+	GenerateRandomSalt(saltLength uint32) ([]byte, error)
+	// Generate Hash From Password
+	GenerateFromPassword(password string) (string, error)
+	// Compare Hash And Password
+	CompareHashAndPassword(password string, encodedHash string) (bool, error)
+	// Decode Hash
+	DecodeHash(encodedHash string) (p *common.HashParams, salt, hash []byte, err error)
 }

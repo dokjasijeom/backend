@@ -6,7 +6,6 @@ import (
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
 	"github.com/dokjasijeom/backend/service"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func NewUserServiceImpl(userRepository *repository.UserRepository) service.UserService {
@@ -34,9 +33,15 @@ func (userService *userServiceImpl) AuthenticateUser(ctx context.Context, email,
 	if err != nil {
 		panic(err)
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(password))
+	match, err := userService.UserRepository.CompareHashAndPassword(password, userResult.Password)
 	if err != nil {
 		panic(err)
+	}
+
+	if !match {
+		exception.PanicLogging("password is not matched")
+	} else {
+		return userResult, nil
 	}
 
 	return userResult, nil

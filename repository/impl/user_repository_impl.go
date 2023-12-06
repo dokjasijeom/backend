@@ -2,11 +2,18 @@ package impl
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"github.com/dokjasijeom/backend/common"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
+	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
+	"strings"
 )
 
 func NewUserRepositoryImpl(DB *gorm.DB) repository.UserRepository {
@@ -41,9 +48,17 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndPassword(email, passw
 func (userRepository *userRepositoryImpl) CreateUser(email, password string) error {
 	var userResult entity.User
 	userResult.Email = email
-	userResult.Password = password
+
+	encodedPassword, err := userRepository.GenerateFromPassword(password)
+	if err != nil {
+		exception.PanicLogging(err)
+		return err
+	}
+
+	userResult.Password = encodedPassword
 	result := userRepository.DB.Create(&userResult)
 	if result.Error != nil {
+		exception.PanicLogging(result.Error)
 		return result.Error
 	}
 	return nil
@@ -66,4 +81,90 @@ func (userRepository *userRepositoryImpl) Authenticate(ctx context.Context, emai
 		return entity.User{}, errors.New("user not found")
 	}
 	return userResult, nil
+}
+
+func (userRepository *userRepositoryImpl) GenerateFromPassword(password string) (string, error) {
+	p := &common.HashParams{
+		Memory:      8 * 1024,
+		Iterations:  1,
+		Parallelism: 1,
+		SaltLength:  8,
+		KeyLength:   32,
+	}
+
+	salt, err := userRepository.GenerateRandomSalt(p.SaltLength)
+	if err != nil {
+		exception.PanicLogging(err)
+		return "", err
+	}
+
+	passwordHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
+
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Hash := base64.RawStdEncoding.EncodeToString(passwordHash)
+
+	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, p.Memory, p.Iterations, p.Parallelism, b64Salt, b64Hash)
+	return encodedHash, nil
+}
+
+func (userRepository *userRepositoryImpl) GenerateRandomSalt(saltLength uint32) ([]byte, error) {
+	b := make([]byte, 8)
+	_, err := rand.Read(b)
+	if err != nil {
+		exception.PanicLogging(err)
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (userRepository *userRepositoryImpl) CompareHashAndPassword(password string, encodedHash string) (bool, error) {
+	p, salt, hash, err := userRepository.DecodeHash(encodedHash)
+	if err != nil {
+		return false, err
+	}
+
+	otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
+
+	if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func (userRepository *userRepositoryImpl) DecodeHash(encodedHash string) (p *common.HashParams, salt []byte, hash []byte, err error) {
+	vals := strings.Split(encodedHash, "$")
+	if len(vals) != 6 {
+		return nil, nil, nil, errors.New("invalid hash format")
+	}
+
+	var version int
+	_, err = fmt.Sscanf(vals[2], "v=%d", &version)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if version != argon2.Version {
+		return nil, nil, nil, errors.New("incompatible version of argon2")
+	}
+
+	p = &common.HashParams{}
+	_, err = fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &p.Memory, &p.Iterations, &p.Parallelism)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	salt, err = base64.RawStdEncoding.DecodeString(vals[4])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	p.SaltLength = uint32(len(salt))
+
+	hash, err = base64.RawStdEncoding.Strict().DecodeString(vals[5])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	p.KeyLength = uint32(len(hash))
+
+	return p, salt, hash, nil
 }
