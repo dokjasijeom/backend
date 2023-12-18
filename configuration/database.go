@@ -21,7 +21,9 @@ func ConnectDatabase() *gorm.DB {
 	}
 
 	dsn := os.Getenv("DEV_DSN")
-	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		log.Fatal("failed to connect database", err)
 	}
