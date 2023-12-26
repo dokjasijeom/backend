@@ -13,6 +13,7 @@ import (
 	"github.com/dokjasijeom/backend/repository"
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
+	"log"
 	"strings"
 )
 
@@ -32,9 +33,6 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
 	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
-	if result.RowsAffected == 0 {
-		exception.PanicLogging("user not found")
-	}
 	err := result.Error
 
 	return userResult, err
@@ -45,18 +43,35 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndPassword(email, passw
 	panic("implement me")
 }
 
-func (userRepository *userRepositoryImpl) CreateUser(email, password string) error {
+func (userRepository *userRepositoryImpl) CreateUser(email, password string) (entity.User, error) {
 	var userResult entity.User
 	userResult.Email = email
 
 	encodedPassword, err := userRepository.GenerateFromPassword(password)
 	if err != nil {
 		exception.PanicLogging(err)
-		return err
+		return userResult, err
 	}
 
 	userResult.Password = encodedPassword
 	result := userRepository.DB.Create(&userResult)
+	if result.Error != nil {
+		exception.PanicLogging(result.Error)
+		userResult.Id = 0
+		return userResult, result.Error
+	}
+	return userResult, nil
+}
+
+func (userRepository *userRepositoryImpl) UpdateUserHashId(ctx context.Context, email string, hashId string) error {
+	var userResult entity.User
+
+	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
+	if result.RowsAffected == 0 {
+		exception.PanicLogging("user not found")
+	}
+	userResult.HashId = hashId
+	result = userRepository.DB.WithContext(ctx).Save(&userResult)
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return result.Error
@@ -80,6 +95,11 @@ func (userRepository *userRepositoryImpl) Authenticate(ctx context.Context, emai
 	if result.RowsAffected == 0 {
 		return entity.User{}, errors.New("user not found")
 	}
+	err := userRepository.DB.Model(&userResult).Association("Roles").Find(&userResult.Roles)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(userResult)
 	return userResult, nil
 }
 

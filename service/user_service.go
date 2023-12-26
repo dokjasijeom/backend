@@ -9,7 +9,7 @@ type UserService interface {
 	// User Authentication
 	AuthenticateUser(ctx context.Context, email, password string) (entity.User, error)
 	// User Create
-	CreateUser(ctx context.Context, email, password, comparePassword string) error
+	CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error)
 	// Get User By Email
 	GetUserByEmail(ctx context.Context, email string) entity.User
 }

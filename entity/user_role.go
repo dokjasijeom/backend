@@ -1,18 +1,16 @@
 package entity
 
 import (
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UserRole struct {
-	Id     uuid.UUID `gorm:"primaryKey;column:user_role_id;type:varchar(36)"`
-	Roles  []Role    `gorm:"foreignKey:Id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserId uint
+	UserId uint `gorm:"column:user_id;type:int(11);not null"`
+	RoleId uint `gorm:"column:role_id;type:int(11);not null"`
 }
 
 func (UserRole) TableName() string {
-	return "user_role"
+	return "user_roles"
 }
 
 func (UserRole) BeforeCreate(tx *gorm.DB) (err error) {

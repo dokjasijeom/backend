@@ -43,17 +43,17 @@ func (controller UserController) AuthenticateUser(ctx *fiber.Ctx) error {
 	}
 
 	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
-	var userRoles []map[string]interface{}
-	for _, userRole := range result.UserRoles {
-		userRoles = append(userRoles, map[string]interface{}{
-			"role": userRole.Roles,
-		})
-	}
-	tokenJwtResult := common.GenerateToken(result.Email, userRoles, controller.Config)
+	//var userRoles []map[string]interface{}
+	//for _, userRole := range result.UserRoles {
+	//	userRoles = append(userRoles, map[string]interface{}{
+	//		"role": userRole,
+	//	})
+	//}
+	tokenJwtResult := common.GenerateToken(result.Email, result.Roles, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": tokenJwtResult,
 		"email": result.Email,
-		"role":  userRoles,
+		"role":  result.Roles,
 	}
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -83,22 +83,26 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = controller.UserService.CreateUser(ctx.Context(), request.Email, request.Password, request.ComparePassword)
-	if err != nil {
-		return err
-	}
-	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
-	var userRoles []map[string]interface{}
-	for _, userRole := range result.UserRoles {
-		userRoles = append(userRoles, map[string]interface{}{
-			"role": userRole.Roles,
+	existUser := controller.UserService.GetUserByEmail(ctx.Context(), request.Email)
+	if existUser.Email == request.Email {
+		return ctx.Status(fiber.StatusConflict).JSON(model.GeneralResponse{
+			Code:    fiber.StatusConflict,
+			Message: "user is already exist",
+			Data:    nil,
 		})
 	}
-	tokenJwtResult := common.GenerateToken(result.Email, userRoles, controller.Config)
+
+	_, createErr := controller.UserService.CreateUser(ctx.Context(), request.Email, request.Password, request.ComparePassword)
+	if createErr != nil {
+		return createErr
+	}
+	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
+
+	tokenJwtResult := common.GenerateToken(result.Email, result.Roles, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": tokenJwtResult,
 		"email": result.Email,
-		"role":  userRoles,
+		"role":  result.Roles,
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{

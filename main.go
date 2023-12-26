@@ -24,10 +24,11 @@ func main() {
 
 	// repository
 	userRepository := repository.NewUserRepositoryImpl(database)
+	userRoleRepository := repository.NewUserRoleRepositoryImpl(database)
 	//roleRepository := repository.NewRoleRepositoryImpl(database)
 
 	// service
-	userService := service.NewUserServiceImpl(&userRepository)
+	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
 	//roleService := service.NewRoleServiceImpl(&roleRepository)
 
 	// controller

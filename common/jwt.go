@@ -2,13 +2,14 @@ package common
 
 import (
 	"github.com/dokjasijeom/backend/configuration"
+	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/golang-jwt/jwt/v5"
 	"strconv"
 	"time"
 )
 
-func GenerateToken(email string, roles []map[string]interface{}, config configuration.Config) string {
+func GenerateToken(email string, roles []*entity.Role, config configuration.Config) string {
 	jwtSecret := config.Get("JWT_SECRET_KEY")
 	jwtExpire, err := strconv.Atoi(config.Get("JWT_EXPIRE_MINUTE"))
 	exception.PanicLogging(err)

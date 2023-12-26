@@ -1,14 +1,19 @@
 package repository
 
+import (
+	"context"
+	"github.com/dokjasijeom/backend/entity"
+)
+
 type UserRoleRepository interface {
 	// Get user role by user id
-	GetUserRoleByUserId(userId string) error
+	GetUserRoleByUserId(userId uint) (entity.UserRole, error)
 	// Get user role by user id and role
-	GetUserRoleByUserIdAndRole(userId, role string) error
+	GetUserRoleByUserIdAndRole(userId uint, roleId uint) (entity.UserRole, error)
 	// Create new user role
-	CreateUserRole(userId, role string) error
+	CreateUserRole(ctx context.Context, userId uint, roleId uint) (entity.UserRole, error)
 	// Update user role by user id
-	UpdateUserRoleByUserId(userId string) error
+	UpdateUserRoleByUserId(userId uint) error
 	// Delete user role by user id
-	DeleteUserRoleByUserId(userId string) error
+	DeleteUserRoleByUserId(userId uint) error
 }
