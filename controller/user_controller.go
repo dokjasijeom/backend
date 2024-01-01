@@ -49,11 +49,18 @@ func (controller UserController) AuthenticateUser(ctx *fiber.Ctx) error {
 	//		"role": userRole,
 	//	})
 	//}
+	// spread result.Roles key Role to array
+
+	var userRoles []string
+	for _, role := range result.Roles {
+		userRoles = append(userRoles, role.Role)
+	}
+
 	tokenJwtResult := common.GenerateToken(result.Email, result.Roles, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": tokenJwtResult,
 		"email": result.Email,
-		"role":  result.Roles,
+		"role":  userRoles,
 	}
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
@@ -98,11 +105,16 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 	}
 	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
 
+	var userRoles []string
+	for _, role := range result.Roles {
+		userRoles = append(userRoles, role.Role)
+	}
+
 	tokenJwtResult := common.GenerateToken(result.Email, result.Roles, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": tokenJwtResult,
 		"email": result.Email,
-		"role":  result.Roles,
+		"role":  userRoles,
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{

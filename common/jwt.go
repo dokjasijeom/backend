@@ -14,9 +14,14 @@ func GenerateToken(email string, roles []*entity.Role, config configuration.Conf
 	jwtExpire, err := strconv.Atoi(config.Get("JWT_EXPIRE_MINUTE"))
 	exception.PanicLogging(err)
 
+	var userRoles []string
+	for _, role := range roles {
+		userRoles = append(userRoles, role.Role)
+	}
+
 	claims := jwt.MapClaims{
 		"email": email,
-		"roles": roles,
+		"roles": userRoles,
 		"exp":   time.Now().Add(time.Minute * time.Duration(jwtExpire)).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
