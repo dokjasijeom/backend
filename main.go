@@ -34,6 +34,7 @@ func main() {
 	// controller
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
+	testController := controller.NewTestController(config)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -46,6 +47,7 @@ func main() {
 
 	userController.Route(app)
 	//roleController.Route(app)
+	testController.Route(app)
 
 	//app.Get("/", func(c *fiber.Ctx) error {
 	//	return c.SendString("Hello, World!")
