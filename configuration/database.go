@@ -17,7 +17,7 @@ func ConnectDatabase() *gorm.DB {
 	// Load connection string from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("failed to load env", err)
+		//log.Fatal("failed to load env", err)
 	}
 
 	releaseMode := os.Getenv("RELEASE_MODE")
