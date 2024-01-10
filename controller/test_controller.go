@@ -18,6 +18,7 @@ type TestController struct {
 
 func (controller TestController) Route(app *fiber.App) {
 	app.Get("/test", middleware.AuthenticateJWT("ANY", controller.Config), controller.restricted)
+	app.Get("/ping", controller.ping)
 }
 
 func (controller TestController) restricted(ctx *fiber.Ctx) error {
@@ -25,4 +26,8 @@ func (controller TestController) restricted(ctx *fiber.Ctx) error {
 	claims := user.Claims.(jwt.MapClaims)
 	email := claims["email"].(string)
 	return ctx.SendString(fmt.Sprintf("Welcome %s!", email))
+}
+
+func (controller TestController) ping(ctx *fiber.Ctx) error {
+	return ctx.SendString("pong")
 }
