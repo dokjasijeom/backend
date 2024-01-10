@@ -53,10 +53,14 @@ func main() {
 	//}
 
 	serverHost := func() string {
-		if serverHost := os.Getenv("SERVER_HOST"); serverHost != "" {
-			return serverHost + ":3000"
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3000"
+		}
+		if serverHost := os.Getenv("HOST"); serverHost != "" {
+			return serverHost + ":" + port
 		} else {
-			return ":80"
+			return ":" + port
 		}
 	}()
 
