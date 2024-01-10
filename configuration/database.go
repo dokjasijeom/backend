@@ -21,6 +21,7 @@ func ConnectDatabase() *gorm.DB {
 	}
 
 	releaseMode := os.Getenv("RELEASE_MODE")
+	log.Println("releaseMode: ", releaseMode)
 
 	dsn := func(releaseMode string) string {
 		if releaseMode == "development" {
