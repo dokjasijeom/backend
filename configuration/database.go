@@ -20,7 +20,16 @@ func ConnectDatabase() *gorm.DB {
 		log.Fatal("failed to load env", err)
 	}
 
-	dsn := os.Getenv("DEV_DSN")
+	releaseMode := os.Getenv("RELEASE_MODE")
+
+	dsn := func(releaseMode string) string {
+		if releaseMode == "development" {
+			return os.Getenv("DEV_DSN")
+		} else {
+			return os.Getenv("MAIN_DSN")
+		}
+	}(releaseMode)
+
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
