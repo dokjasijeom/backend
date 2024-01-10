@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/dokjasijeom/backend/controller"
 	"github.com/dokjasijeom/backend/exception"
 	repository "github.com/dokjasijeom/backend/repository/impl"
@@ -12,13 +11,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"os"
 
 	"github.com/dokjasijeom/backend/configuration"
 )
 
 func main() {
 	config := configuration.New()
-	serverHost := config.Get("SERVER_HOST")
 
 	database := configuration.ConnectDatabase()
 
@@ -51,8 +50,16 @@ func main() {
 
 	//app.Get("/", func(c *fiber.Ctx) error {
 	//	return c.SendString("Hello, World!")
-	//})
+	//}
 
-	err := app.Listen(fmt.Sprintf("%s:3000", serverHost))
+	serverHost := func() string {
+		if serverHost := os.Getenv("SERVER_HOST"); serverHost != "" {
+			return serverHost + ":3000"
+		} else {
+			return ":80"
+		}
+	}()
+
+	err := app.Listen(serverHost)
 	exception.PanicLogging(err)
 }
