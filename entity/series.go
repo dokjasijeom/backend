@@ -7,9 +7,9 @@ import (
 
 type Series struct {
 	Id          uint         `gorm:"primaryKey;column:id;type:int(11);not null;autoIncrement"`
-	HashId      string       `gorm:"column:hash_id;type:varchar(255);not null"`
+	HashId      string       `gorm:"column:hash_id;type:varchar(255);null"`
 	Title       string       `gorm:"column:title;type:varchar(255);not null"`
-	Description string       `gorm:"column:description;type:text;not null"`
+	Description string       `gorm:"column:description;type:text;null"`
 	Thumbnail   string       `gorm:"column:thumbnail;type:varchar(255);not null"`
 	ISBN        string       `gorm:"column:isbn;type:varchar(255);null"`
 	ECNNumber   string       `gorm:"column:ecn_number;type:varchar(255);null"`
