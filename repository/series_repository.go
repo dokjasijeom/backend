@@ -4,19 +4,19 @@ import "github.com/dokjasijeom/backend/entity"
 
 type SeriesRepository interface {
 	// Create Series
-	CreateSeries(series *entity.Series) (*entity.Series, error)
+	CreateSeries(series entity.Series) (entity.Series, error)
 	// Update Series by Id
-	UpdateSeriesById(id uint, series *entity.Series) (*entity.Series, error)
+	UpdateSeriesById(id uint, series entity.Series) (entity.Series, error)
 	// Delete Series by Id
 	DeleteSeriesById(id uint) error
 	// Get Series by Id
-	GetSeriesById(id uint) (*entity.Series, error)
+	GetSeriesById(id uint) (entity.Series, error)
 	// Get All Series
 	GetAllSeries() ([]entity.Series, error)
 	// Get Series by HashId
-	GetSeriesByHashId(hashId string) (*entity.Series, error)
+	GetSeriesByHashId(hashId string) (entity.Series, error)
 	// Get Series by Title
-	GetSeriesByTitle(title string) (*entity.Series, error)
+	GetSeriesByTitle(title string) (entity.Series, error)
 	// Get Series by SeriesType
 	GetSeriesBySeriesType(seriesType string) ([]entity.Series, error)
 	// Get Series by PublisherId

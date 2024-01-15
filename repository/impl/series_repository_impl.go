@@ -15,15 +15,15 @@ type seriesRepositoryImpl struct {
 }
 
 // Create Series
-func (seriesRepository *seriesRepositoryImpl) CreateSeries(series *entity.Series) (*entity.Series, error) {
-	result := seriesRepository.DB.Create(&series)
+func (seriesRepository *seriesRepositoryImpl) CreateSeries(series entity.Series) (entity.Series, error) {
+	result := seriesRepository.DB.Create(series)
 	if result.RowsAffected == 0 {
-		return &entity.Series{}, nil
+		return entity.Series{}, nil
 	}
 	return series, nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series *entity.Series) (*entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series entity.Series) (entity.Series, error) {
 	panic("implement me")
 }
 
@@ -31,13 +31,13 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(id uint) error {
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesById(id uint) (*entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetSeriesById(id uint) (entity.Series, error) {
 	var seriesResult entity.Series
 	result := seriesRepository.DB.First(&seriesResult, id)
 	if result.RowsAffected == 0 {
-		return &entity.Series{}, nil
+		return entity.Series{}, nil
 	}
-	return &seriesResult, nil
+	return seriesResult, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayIdAndSeriesType(publishDayId uint, seriesType string) ([]entity.Series, error) {
@@ -64,11 +64,11 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesBySeriesType(seriesType s
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (*entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (entity.Series, error) {
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (*entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (entity.Series, error) {
 	panic("implement me")
 }
 

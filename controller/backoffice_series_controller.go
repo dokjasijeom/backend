@@ -53,6 +53,15 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 	if err != nil {
 		exception.PanicLogging(err)
 	}
+	request.Thumbnail = filename
+
+	result, err := controller.SeriesService.CreateSeries(ctx.Context(), request)
+
+	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    result,
+	})
 }
 
 func imageProcessing(ctx context.Context, buffer []byte, quality int) (string, error) {
