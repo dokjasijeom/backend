@@ -83,6 +83,20 @@ func (controller BackofficeSeriesController) GetSeriesById(ctx *fiber.Ctx) error
 	})
 }
 
+// Get All Series
+func (controller BackofficeSeriesController) GetAllSeries(ctx *fiber.Ctx) error {
+	result, err := controller.SeriesService.GetAllSeries(ctx.Context())
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
 func imageProcessing(ctx context.Context, buffer []byte, quality int) (string, error) {
 	filename := strings.Replace(uuid.New().String(), "-", "", -1) + ".webp"
 	converted, err := bimg.NewImage(buffer).Convert(bimg.WEBP)

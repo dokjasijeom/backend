@@ -73,6 +73,11 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetAllSeries() ([]entity.Series, error) {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
+	var seriesResult []entity.Series
+	result := seriesRepository.DB.WithContext(ctx).Find(&seriesResult)
+	if result.RowsAffected == 0 {
+		return []entity.Series{}, nil
+	}
+	return seriesResult, nil
 }

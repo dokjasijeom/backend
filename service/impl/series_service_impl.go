@@ -55,8 +55,8 @@ func (seriesService *seriesServiceImpl) GetSeriesById(ctx context.Context, id ui
 
 // Get all Series
 func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
-	result, _ := seriesService.SeriesRepository.GetAllSeries()
-	if result == nil {
+	result, err := seriesService.SeriesRepository.GetAllSeries(ctx)
+	if err != nil {
 		return []entity.Series{}, nil
 	}
 	return result, nil

@@ -15,7 +15,7 @@ type SeriesRepository interface {
 	// Get Series by Id
 	GetSeriesById(ctx context.Context, id uint) (entity.Series, error)
 	// Get All Series
-	GetAllSeries() ([]entity.Series, error)
+	GetAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get Series by HashId
 	GetSeriesByHashId(hashId string) (entity.Series, error)
 	// Get Series by Title
