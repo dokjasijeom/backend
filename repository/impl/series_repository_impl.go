@@ -28,8 +28,12 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series e
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(id uint) error {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Context, id uint) error {
+	result := seriesRepository.DB.WithContext(ctx).Delete(&entity.Series{}, id)
+	if result.RowsAffected == 0 {
+		return nil
+	}
+	return nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {

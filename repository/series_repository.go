@@ -11,7 +11,7 @@ type SeriesRepository interface {
 	// Update Series by Id
 	UpdateSeriesById(id uint, series entity.Series) (entity.Series, error)
 	// Delete Series by Id
-	DeleteSeriesById(id uint) error
+	DeleteSeriesById(ctx context.Context, id uint) error
 	// Get Series by Id
 	GetSeriesById(ctx context.Context, id uint) (entity.Series, error)
 	// Get All Series

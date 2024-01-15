@@ -97,6 +97,25 @@ func (controller BackofficeSeriesController) GetAllSeries(ctx *fiber.Ctx) error 
 	})
 }
 
+// Delete Series By Id
+func (controller BackofficeSeriesController) DeleteSeriesById(ctx *fiber.Ctx) error {
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil {
+		return err
+	}
+
+	result := controller.SeriesService.DeleteSeriesById(ctx.Context(), uint(id))
+	if result != nil {
+		return result
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
 func imageProcessing(ctx context.Context, buffer []byte, quality int) (string, error) {
 	filename := strings.Replace(uuid.New().String(), "-", "", -1) + ".webp"
 	converted, err := bimg.NewImage(buffer).Convert(bimg.WEBP)
