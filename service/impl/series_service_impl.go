@@ -27,7 +27,7 @@ func (seriesService *seriesServiceImpl) CreateSeries(ctx context.Context, series
 		SeriesType:  series.SeriesType,
 	}
 
-	result, err := seriesService.SeriesRepository.CreateSeries(seriesEntity)
+	result, err := seriesService.SeriesRepository.CreateSeries(ctx, seriesEntity)
 	if err != nil {
 		return entity.Series{}, nil
 	}
@@ -46,7 +46,7 @@ func (seriesService *seriesServiceImpl) DeleteSeriesById(ctx context.Context, id
 
 // Get Series by Id
 func (seriesService *seriesServiceImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
-	result, err := seriesService.SeriesRepository.GetSeriesById(id)
+	result, err := seriesService.SeriesRepository.GetSeriesById(ctx, id)
 	if err != nil {
 		return entity.Series{}, nil
 	}

@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"context"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
@@ -15,8 +16,8 @@ type seriesRepositoryImpl struct {
 }
 
 // Create Series
-func (seriesRepository *seriesRepositoryImpl) CreateSeries(series entity.Series) (entity.Series, error) {
-	result := seriesRepository.DB.Create(series)
+func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series) (entity.Series, error) {
+	result := seriesRepository.DB.WithContext(ctx).Create(series)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -31,9 +32,9 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(id uint) error {
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesById(id uint) (entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
