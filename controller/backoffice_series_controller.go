@@ -25,7 +25,7 @@ type BackofficeSeriesController struct {
 	configuration.Config
 }
 
-func (controller BackofficeSeriesController) Route(app *fiber.App) {
+func (controller BackofficeSeriesController) Route(app fiber.Router) {
 	app.Post("/series", controller.CreateSeries)
 	app.Get("/series", controller.GetAllSeries)
 	app.Get("/series/:id", controller.GetSeriesById)

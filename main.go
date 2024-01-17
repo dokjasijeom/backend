@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/dokjasijeom/backend/controller"
 	"github.com/dokjasijeom/backend/exception"
+	"github.com/dokjasijeom/backend/middleware"
 	repository "github.com/dokjasijeom/backend/repository/impl"
 	service "github.com/dokjasijeom/backend/service/impl"
 	"github.com/gofiber/fiber/v2"
@@ -25,15 +26,18 @@ func main() {
 	userRepository := repository.NewUserRepositoryImpl(database)
 	userRoleRepository := repository.NewUserRoleRepositoryImpl(database)
 	//roleRepository := repository.NewRoleRepositoryImpl(database)
+	seriesRepository := repository.NewSeriesRepositoryImpl(database)
 
 	// service
 	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
 	//roleService := service.NewRoleServiceImpl(&roleRepository)
+	seriesService := service.NewSeriesServiceImpl(&seriesRepository)
 
 	// controller
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
+	backofficeSeriesController := controller.NewBackofficeSeriesController(&seriesService, config)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -47,6 +51,9 @@ func main() {
 	userController.Route(app)
 	//roleController.Route(app)
 	testController.Route(app)
+
+	backoffice := app.Group("/backoffice", middleware.AuthenticateJWT("ADMIN", config))
+	backofficeSeriesController.Route(backoffice)
 
 	//app.Get("/", func(c *fiber.Ctx) error {
 	//	return c.SendString("Hello, World!")

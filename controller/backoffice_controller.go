@@ -16,5 +16,4 @@ type BackofficeController struct {
 
 func (controller BackofficeController) Route(app *fiber.App) {
 	backoffice := app.Group("/backoffice", middleware.AuthenticateJWT("ADMIN", controller.Config))
-
 }
