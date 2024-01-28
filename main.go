@@ -27,17 +27,20 @@ func main() {
 	userRoleRepository := repository.NewUserRoleRepositoryImpl(database)
 	//roleRepository := repository.NewRoleRepositoryImpl(database)
 	seriesRepository := repository.NewSeriesRepositoryImpl(database)
+	genreRepository := repository.NewGenreRepositoryImpl(database)
 
 	// service
 	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
 	//roleService := service.NewRoleServiceImpl(&roleRepository)
 	seriesService := service.NewSeriesServiceImpl(&seriesRepository)
+	genreService := service.NewGenreServiceImpl(&genreRepository)
 
 	// controller
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
 	backofficeSeriesController := controller.NewBackofficeSeriesController(&seriesService, config)
+	backofficeGenreController := controller.NewBackofficeGenreController(&genreService, config)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -54,6 +57,7 @@ func main() {
 
 	backoffice := app.Group("/backoffice", middleware.AuthenticateJWT("ADMIN", config))
 	backofficeSeriesController.Route(backoffice)
+	backofficeGenreController.Route(backoffice)
 
 	//app.Get("/", func(c *fiber.Ctx) error {
 	//	return c.SendString("Hello, World!")
