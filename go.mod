@@ -3,6 +3,7 @@ module github.com/dokjasijeom/backend
 go 1.21.3
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofiber/contrib/jwt v1.0.8
 	github.com/gofiber/fiber/v2 v2.51.0
@@ -18,10 +19,8 @@ require (
 require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/cloudinary/cloudinary-go/v2 v2.7.0 // indirect
 	github.com/creasty/defaults v1.5.1 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
-	github.com/h2non/bimg v1.1.9 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
@@ -34,5 +33,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.50.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
+	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 )

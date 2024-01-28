@@ -11,7 +11,8 @@ import (
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/h2non/bimg"
+	"image"
+	"image/jpeg"
 	"io"
 	"strings"
 )
@@ -26,10 +27,11 @@ type BackofficeSeriesController struct {
 }
 
 func (controller BackofficeSeriesController) Route(app fiber.Router) {
-	app.Post("/series", controller.CreateSeries)
-	app.Get("/series", controller.GetAllSeries)
-	app.Get("/series/:id", controller.GetSeriesById)
-	app.Delete("/series/:id", controller.DeleteSeriesById)
+	series := app.Group("/series")
+	series.Post("/", controller.CreateSeries)
+	series.Get("/", controller.GetAllSeries)
+	series.Get("/:id", controller.GetSeriesById)
+	series.Delete("/:id", controller.DeleteSeriesById)
 }
 
 // Create Series
@@ -118,18 +120,19 @@ func (controller BackofficeSeriesController) DeleteSeriesById(ctx *fiber.Ctx) er
 
 func imageProcessing(ctx context.Context, buffer []byte, quality int) (string, error) {
 	filename := strings.Replace(uuid.New().String(), "-", "", -1) + ".webp"
-	converted, err := bimg.NewImage(buffer).Convert(bimg.WEBP)
-	if err != nil {
-		return filename, err
-	}
 
-	processed, err := bimg.NewImage(converted).Process(bimg.Options{Quality: quality})
+	img, _, err := image.Decode(bytes.NewReader(buffer))
 	if err != nil {
-		return filename, err
+		exception.PanicLogging(err)
+	}
+	var jpegBuffer bytes.Buffer
+	err = jpeg.Encode(&jpegBuffer, img, &jpeg.Options{Quality: quality})
+	if err != nil {
+		exception.PanicLogging(err)
 	}
 
 	cld, _ := cloudinary.New()
-	_, err = cld.Upload.Upload(ctx, bytes.NewReader(processed), uploader.UploadParams{
+	_, err = cld.Upload.Upload(ctx, jpegBuffer, uploader.UploadParams{
 		PublicID: filename,
 		Folder:   "series",
 	})
