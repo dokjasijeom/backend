@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/dokjasijeom/backend/controller"
+	"github.com/dokjasijeom/backend/controller/backoffice"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/middleware"
 	repository "github.com/dokjasijeom/backend/repository/impl"
@@ -41,9 +42,9 @@ func main() {
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
-	backofficeSeriesController := controller.NewBackofficeSeriesController(&seriesService, config)
-	backofficeGenreController := controller.NewBackofficeGenreController(&genreService, config)
-	backofficeProviderController := controller.NewBackofficeProviderController(&providerService, config)
+	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, config)
+	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)
+	backofficeProviderController := backoffice.NewBackofficeProviderController(&providerService, config)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())

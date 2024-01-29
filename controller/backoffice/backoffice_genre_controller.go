@@ -1,4 +1,4 @@
-package controller
+package backoffice
 
 import (
 	"github.com/dokjasijeom/backend/configuration"
