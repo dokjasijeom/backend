@@ -11,7 +11,6 @@ type Publisher struct {
 	Name        string   `gorm:"column:name;type:varchar(255);not null"`
 	Description string   `gorm:"column:description;type:text;null"`
 	HomepageUrl string   `gorm:"column:homepage_url;type:varchar(255);null"`
-	Location    string   `gorm:"column:location;type:varchar(255);null"`
 	Series      []Series `gorm:"foreignKey:PublisherId"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
