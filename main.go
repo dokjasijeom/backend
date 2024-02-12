@@ -31,6 +31,7 @@ func main() {
 	genreRepository := repository.NewGenreRepositoryImpl(database)
 	providerRepository := repository.NewProviderRepositoryImpl(database)
 	publisherRepoistory := repository.NewPublisherRepositoryImpl(database)
+	publishDayRepository := repository.NewPublishDayRepositoryImpl(database)
 
 	// service
 	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
@@ -39,6 +40,7 @@ func main() {
 	genreService := service.NewGenreServiceImpl(&genreRepository)
 	providerService := service.NewProviderServiceImpl(&providerRepository)
 	publisherService := service.NewPublisherServiceImpl(&publisherRepoistory)
+	publishDayService := service.NewPublishDayServiceImpl(&publishDayRepository)
 
 	// controller
 	userController := controller.NewUserController(&userService, config)
@@ -48,6 +50,7 @@ func main() {
 	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)
 	backofficeProviderController := backoffice.NewBackofficeProviderController(&providerService, config)
 	backofficePublisherController := backoffice.NewBackofficePublisherController(&publisherService, config)
+	backofficePublishDayController := backoffice.NewBackofficePublishDayController(&publishDayService, config)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -67,6 +70,7 @@ func main() {
 	backofficeGenreController.Route(backoffice)
 	backofficeProviderController.Route(backoffice)
 	backofficePublisherController.Route(backoffice)
+	backofficePublishDayController.Route(backoffice)
 
 	//app.Get("/", func(c *fiber.Ctx) error {
 	//	return c.SendString("Hello, World!")
