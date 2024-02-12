@@ -18,7 +18,8 @@ type Series struct {
 	Episodes    []Episode    `gorm:"foreignKey:SeriesId"`
 	Persons     []Person     `gorm:"many2many:series_persons;"` // many to many relationship
 	Genres      []Genre      `gorm:"many2many:series_genres;"`  // many to many relationship
-	PublisherId uint         `gorm:"column:publisher_id;type:int(11);null"`
+	Publisher   Publisher    `gorm:"foreignKey:PublisherId"`
+	Providers   []Provider   `gorm:"many2many:series_providers;"` // many to many relationship
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
