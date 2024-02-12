@@ -11,7 +11,7 @@ type Publisher struct {
 	Name        string   `gorm:"column:name;type:varchar(255);not null"`
 	Description string   `gorm:"column:description;type:text;null"`
 	HomepageUrl string   `gorm:"column:homepage_url;type:varchar(255);null"`
-	Series      []Series `gorm:"foreignKey:PublisherId"`
+	Series      []Series `gorm:"many2many:series_publishers;"` // many to many relationship
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `gorm:"index"`
