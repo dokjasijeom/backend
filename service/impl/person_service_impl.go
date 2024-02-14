@@ -38,3 +38,67 @@ func (personService *personService) CreatePerson(ctx context.Context, name strin
 
 	return result, nil
 }
+
+func (personService *personService) UpdatePerson(ctx context.Context, id uint, name string) (entity.Person, error) {
+	result, err := personService.PersonRepository.UpdatePerson(ctx, id, name)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) UpdatePersonHashId(ctx context.Context, person entity.Person, hashId string) error {
+	err := personService.PersonRepository.UpdatePersonHashId(ctx, person, hashId)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return nil
+}
+
+func (personService *personService) GetPersonById(ctx context.Context, id uint) (entity.Person, error) {
+	result, err := personService.PersonRepository.GetPersonById(ctx, id)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) GetPersonByHashId(ctx context.Context, hashId string) (entity.Person, error) {
+	result, err := personService.PersonRepository.GetPersonByHashId(ctx, hashId)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) GetPersonByName(ctx context.Context, name string) (entity.Person, error) {
+	result, err := personService.PersonRepository.GetPersonByName(ctx, name)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) DeletePersonById(ctx context.Context, id uint) (entity.Person, error) {
+	result, err := personService.PersonRepository.DeletePersonById(ctx, id)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) DeletePersonByHashId(ctx context.Context, hashId string) (entity.Person, error) {
+	result, err := personService.PersonRepository.DeletePersonByHashId(ctx, hashId)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
+
+func (personService *personService) GetAllPerson(ctx context.Context) ([]entity.Person, error) {
+	result, err := personService.PersonRepository.GetAllPerson(ctx)
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	return result, nil
+}
