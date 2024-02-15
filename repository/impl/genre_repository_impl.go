@@ -36,7 +36,7 @@ func (genreRepository *genreRepositoryImpl) CreateGenre(ctx context.Context, nam
 
 func (genreRepository *genreRepositoryImpl) GetAllMainGenre(ctx context.Context) ([]entity.Genre, error) {
 	var genreResult []entity.Genre
-	result := genreRepository.DB.WithContext(ctx).Where("parent_genre_id IS NULL").Find(&genreResult)
+	result := genreRepository.DB.WithContext(ctx).Where("parent_genre_id = 0").Find(&genreResult)
 
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
