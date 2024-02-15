@@ -18,10 +18,10 @@ type genreServiceImpl struct {
 	repository.GenreRepository
 }
 
-func (genreService *genreServiceImpl) CreateGenre(ctx context.Context, name string, parentGenreId uint) (entity.Genre, error) {
+func (genreService *genreServiceImpl) CreateGenre(ctx context.Context, name string, genreType entity.GenreType, parentGenreId uint) (entity.Genre, error) {
 	config := configuration.New()
 
-	result, err := genreService.GenreRepository.CreateGenre(ctx, name, parentGenreId)
+	result, err := genreService.GenreRepository.CreateGenre(ctx, name, genreType, parentGenreId)
 	hd := hashids.NewData()
 	hd.Salt = config.Get("HASH_SALT_GENRE")
 	hd.MinLength = 6

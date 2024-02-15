@@ -37,7 +37,7 @@ func (controller BackofficeGenreController) CreateGenre(ctx *fiber.Ctx) error {
 		})
 	}
 
-	result, err := controller.GenreService.CreateGenre(ctx.Context(), request.Name, request.ParentGenreId)
+	result, err := controller.GenreService.CreateGenre(ctx.Context(), request.Name, request.GenreType, request.ParentGenreId)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Code:    fiber.StatusBadRequest,

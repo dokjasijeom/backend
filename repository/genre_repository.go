@@ -7,7 +7,7 @@ import (
 
 type GenreRepository interface {
 	// Create New Genre
-	CreateGenre(ctx context.Context, name string, parentGenreId uint) (entity.Genre, error)
+	CreateGenre(ctx context.Context, name string, genreType entity.GenreType, parentGenreId uint) (entity.Genre, error)
 	// Get All Main Genre
 	GetAllMainGenre(ctx context.Context) ([]entity.Genre, error)
 	// Get All Sub Genre

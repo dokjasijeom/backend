@@ -16,9 +16,10 @@ type genreRepositoryImpl struct {
 	*gorm.DB
 }
 
-func (genreRepository *genreRepositoryImpl) CreateGenre(ctx context.Context, name string, parentGenreId uint) (entity.Genre, error) {
+func (genreRepository *genreRepositoryImpl) CreateGenre(ctx context.Context, name string, genreType entity.GenreType, parentGenreId uint) (entity.Genre, error) {
 	var genreResult entity.Genre
 	genreResult.Name = name
+	genreResult.GenreType = genreType
 
 	if parentGenreId != 0 {
 		genreResult.ParentGenreId = parentGenreId
