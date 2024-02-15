@@ -1,10 +1,16 @@
 package model
 
+import (
+	"github.com/dokjasijeom/backend/entity"
+	"os"
+)
+
 type SeriesModel struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Thumbnail   string `json:"thumbnail"`
-	ISBN        string `json:"isbn"`
-	ECNNumber   string `json:"ecn_number"`
-	SeriesType  string `json:"series_type"`
+	Title       string            `form:"title"`
+	Description string            `form:"description,omitempty"`
+	Thumbnail   string            `form:"thumbnail,omitempty"`
+	ISBN        string            `form:"isbn,omitempty"`
+	ECN         string            `form:"ecn,omitempty"`
+	Image       os.File           `form:"image,omitempty"`
+	SeriesType  entity.SeriesType `form:"series_type"`
 }

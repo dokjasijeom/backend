@@ -2,10 +2,14 @@ package impl
 
 import (
 	"context"
+	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/repository"
 	"github.com/dokjasijeom/backend/service"
+	"github.com/speps/go-hashids/v2"
+	"log"
 )
 
 func NewSeriesServiceImpl(seriesRepository *repository.SeriesRepository) service.SeriesService {
@@ -18,19 +22,43 @@ type seriesServiceImpl struct {
 
 // Create Series
 func (seriesService *seriesServiceImpl) CreateSeries(ctx context.Context, series model.SeriesModel) (entity.Series, error) {
+	config := configuration.New()
+
 	var seriesEntity = entity.Series{
-		Title:       series.Title,
-		Description: series.Description,
-		Thumbnail:   series.Thumbnail,
-		ISBN:        series.ISBN,
-		ECNNumber:   series.ECNNumber,
-		SeriesType:  series.SeriesType,
+		Title:      series.Title,
+		Thumbnail:  series.Thumbnail,
+		SeriesType: series.SeriesType,
+	}
+
+	if series.Description != "" {
+		seriesEntity.Description = series.Description
+	}
+	if series.ISBN != "" {
+		seriesEntity.ISBN = series.ISBN
+	}
+	if series.ECN != "" {
+		seriesEntity.ECN = series.ECN
 	}
 
 	result, err := seriesService.SeriesRepository.CreateSeries(ctx, seriesEntity)
 	if err != nil {
+		exception.PanicLogging(err)
 		return entity.Series{}, nil
 	}
+
+	log.Println("Series ID: ", result.Id)
+
+	hd := hashids.NewData()
+	hd.Salt = config.Get("HASH_SALT_SERIES")
+	hd.MinLength = 6
+	h, _ := hashids.NewWithData(hd)
+	e, _ := h.Encode([]int{int(result.Id)})
+
+	if e != "" {
+		_ = seriesService.SeriesRepository.UpdateSeriesHashId(ctx, result.Id, e)
+		result.HashId = e
+	}
+
 	return result, nil
 }
 

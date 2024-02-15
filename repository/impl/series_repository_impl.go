@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
 )
@@ -17,11 +18,24 @@ type seriesRepositoryImpl struct {
 
 // Create Series
 func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series) (entity.Series, error) {
-	result := seriesRepository.DB.WithContext(ctx).Create(series)
-	if result.RowsAffected == 0 {
-		return entity.Series{}, nil
+	var seriesResult entity.Series
+	seriesResult = series
+
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Create(&seriesResult)
+	if result.Error != nil {
+		exception.PanicLogging(result.Error)
+		return entity.Series{}, result.Error
 	}
-	return series, nil
+	return seriesResult, nil
+}
+
+// Update series hash id
+func (seriesRepository *seriesRepositoryImpl) UpdateSeriesHashId(ctx context.Context, id uint, hashId string) error {
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id = ?", id).Updates(map[string]interface{}{"hash_id": hashId})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series entity.Series) (entity.Series, error) {
@@ -29,7 +43,7 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series e
 }
 
 func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Context, id uint) error {
-	result := seriesRepository.DB.WithContext(ctx).Delete(&entity.Series{}, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Delete(&entity.Series{}, id)
 	if result.RowsAffected == 0 {
 		return nil
 	}
@@ -38,7 +52,7 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -79,7 +93,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (
 
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Find(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Find(&seriesResult)
 	if result.RowsAffected == 0 {
 		return []entity.Series{}, nil
 	}

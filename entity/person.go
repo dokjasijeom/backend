@@ -17,3 +17,7 @@ type Person struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
+
+func (Person) TableName() string {
+	return "person"
+}

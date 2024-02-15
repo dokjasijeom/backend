@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type SeriesType string
+
+const (
+	WebNovel SeriesType = "webnovel"
+	WebToon  SeriesType = "webtoon"
+)
+
 type Series struct {
 	Id          uint         `gorm:"primaryKey;column:id;type:int(11);not null;autoIncrement"`
 	HashId      string       `gorm:"column:hash_id;type:varchar(255);null"`
@@ -12,8 +19,8 @@ type Series struct {
 	Description string       `gorm:"column:description;type:text;null"`
 	Thumbnail   string       `gorm:"column:thumbnail;type:varchar(255);not null"`
 	ISBN        string       `gorm:"column:isbn;type:varchar(255);null"`
-	ECNNumber   string       `gorm:"column:ecn_number;type:varchar(255);null"`
-	SeriesType  string       `gorm:"column:series_type;type:varchar(255);not null"`
+	ECN         string       `gorm:"column:ecn;type:varchar(255);null"`
+	SeriesType  SeriesType   `gorm:"column:series_type;type:varchar(20);not null"`
 	PublishDays []PublishDay `gorm:"many2many:series_publish_days;"` // many to many relationship
 	Episodes    []Episode    `gorm:"many2many:series_episodes;"`     // many to many relationship
 	Persons     []Person     `gorm:"many2many:series_persons;"`      // many to many relationship

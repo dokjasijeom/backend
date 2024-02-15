@@ -8,6 +8,8 @@ import (
 type SeriesRepository interface {
 	// Create Series
 	CreateSeries(ctx context.Context, series entity.Series) (entity.Series, error)
+	// Update Series HashId
+	UpdateSeriesHashId(ctx context.Context, id uint, hashId string) error
 	// Update Series by Id
 	UpdateSeriesById(id uint, series entity.Series) (entity.Series, error)
 	// Delete Series by Id

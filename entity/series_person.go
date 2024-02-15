@@ -7,5 +7,5 @@ type SeriesPerson struct {
 }
 
 func (SeriesPerson) TableName() string {
-	return "series_persons"
+	return "series_person"
 }
