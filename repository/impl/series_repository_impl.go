@@ -4,8 +4,10 @@ import (
 	"context"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
+	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
+	"log"
 )
 
 func NewSeriesRepositoryImpl(DB *gorm.DB) repository.SeriesRepository {
@@ -17,11 +19,21 @@ type seriesRepositoryImpl struct {
 }
 
 // Create Series
-func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series) (entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series, model model.SeriesModel) (entity.Series, error) {
 	var seriesResult entity.Series
 	seriesResult = series
 
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Create(&seriesResult)
+
+	if model.GenreId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Genres").Append(&entity.Genre{Id: model.GenreId})
+		if err != nil {
+			log.Println("장르 연결 실패")
+			exception.PanicLogging(err)
+			//return entity.Series{}, err
+		}
+	}
+
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return entity.Series{}, result.Error

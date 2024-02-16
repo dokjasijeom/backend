@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -59,6 +60,27 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 	if ecn := form.Value["ecn"]; len(ecn) > 0 {
 		request.ECN = ecn[0]
 	}
+	if genreId := form.Value["genreId"]; len(genreId) > 0 {
+		u64, _ := strconv.ParseInt(genreId[0], 10, 0)
+		request.GenreId = uint(u64)
+	}
+	if personId := form.Value["personId"]; len(personId) > 0 {
+		u64, _ := strconv.ParseInt(personId[0], 10, 0)
+		request.PersonId = uint(u64)
+	}
+	if publisherId := form.Value["publisherId"]; len(publisherId) > 0 {
+		u64, _ := strconv.ParseInt(publisherId[0], 10, 0)
+		request.PublisherId = uint(u64)
+	}
+	if providerId := form.Value["providerId"]; len(providerId) > 0 {
+		u64, _ := strconv.ParseInt(providerId[0], 10, 0)
+		request.ProviderId = uint(u64)
+	}
+	if publishDayId := form.Value["publishDayId"]; len(publishDayId) > 0 {
+		u64, _ := strconv.ParseInt(publishDayId[0], 10, 0)
+		request.PublishDayId = uint(u64)
+	}
+
 	fileheader, err := ctx.FormFile("image")
 	if err != nil {
 		log.Println(0)

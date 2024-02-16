@@ -3,11 +3,12 @@ package repository
 import (
 	"context"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/model"
 )
 
 type SeriesRepository interface {
 	// Create Series
-	CreateSeries(ctx context.Context, series entity.Series) (entity.Series, error)
+	CreateSeries(ctx context.Context, series entity.Series, model model.SeriesModel) (entity.Series, error)
 	// Update Series HashId
 	UpdateSeriesHashId(ctx context.Context, id uint, hashId string) error
 	// Update Series by Id

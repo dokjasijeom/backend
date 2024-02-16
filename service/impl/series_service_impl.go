@@ -40,7 +40,7 @@ func (seriesService *seriesServiceImpl) CreateSeries(ctx context.Context, series
 		seriesEntity.ECN = series.ECN
 	}
 
-	result, err := seriesService.SeriesRepository.CreateSeries(ctx, seriesEntity)
+	result, err := seriesService.SeriesRepository.CreateSeries(ctx, seriesEntity, series)
 	if err != nil {
 		exception.PanicLogging(err)
 		return entity.Series{}, nil
