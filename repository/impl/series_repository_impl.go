@@ -100,10 +100,16 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
-	var seriesResult entity.Series
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Joins("PublishDays", seriesRepository.DB.Where(&entity.PublishDay{Day: publishDay})).Where("series_type = ?", seriesType).Find(&seriesResult)
+	var seriesResult []entity.Series
 
-	return []entity.Series{seriesResult}, nil
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("PublishDays", "day = ?", publishDay).Where("series_type = ?", seriesType).Find(&seriesResult)
+
+	// series 결과 목록에서 Id 필드값을 제거
+	for i := range seriesResult {
+		seriesResult[i].Id = 0
+	}
+
+	return seriesResult, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error) {
@@ -143,11 +149,10 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 		return nil, err.Error
 	}
 
-	return seriesResult, nil
+	// series 결과 목록에서 Id 필드값을 제거
+	for i := range seriesResult {
+		seriesResult[i].Id = 0
+	}
 
-	//result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Find(&seriesResult)
-	//if result.RowsAffected == 0 {
-	//	return []entity.Series{}, nil
-	//}
-	//return seriesResult, nil
+	return seriesResult, nil
 }

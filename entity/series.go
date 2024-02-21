@@ -13,21 +13,21 @@ const (
 )
 
 type Series struct {
-	Id          uint         `gorm:"primaryKey;column:id;type:int(11);not null;autoIncrement"`
-	HashId      string       `gorm:"column:hash_id;type:varchar(255);null"`
-	Title       string       `gorm:"column:title;type:varchar(255);not null"`
-	Description string       `gorm:"column:description;type:text;null"`
-	Thumbnail   string       `gorm:"column:thumbnail;type:varchar(255);not null"`
-	ISBN        string       `gorm:"column:isbn;type:varchar(255);null"`
-	ECN         string       `gorm:"column:ecn;type:varchar(255);null"`
-	SeriesType  SeriesType   `gorm:"column:series_type;type:varchar(20);not null"`
-	PublishDays []PublishDay `gorm:"many2many:series_publish_days;"` // many to many relationship
-	Episodes    []Episode    `gorm:"many2many:series_episodes;"`     // many to many relationship
-	Persons     []Person     `gorm:"many2many:series_persons;"`      // many to many relationship
-	Genres      []Genre      `gorm:"many2many:series_genres;"`       // many to many relationship
-	PublisherId uint         `gorm:"column:publisher_id;type:int(11);null"`
-	Publisher   Publisher    `gorm:"foreignKey:PublisherId"`
-	Providers   []Provider   `gorm:"many2many:series_providers;"` // many to many relationship
+	Id          uint         `gorm:"primaryKey;column:id;type:int(11);not null;autoIncrement" json:"id,omitempty"`
+	HashId      string       `gorm:"column:hash_id;type:varchar(255);null" json:"hashId"`
+	Title       string       `gorm:"column:title;type:varchar(255);not null" json:"title"`
+	Description string       `gorm:"column:description;type:text;null" json:"description"`
+	Thumbnail   string       `gorm:"column:thumbnail;type:varchar(255);not null" json:"thumbnail"`
+	ISBN        string       `gorm:"column:isbn;type:varchar(255);null" json:"isbn"`
+	ECN         string       `gorm:"column:ecn;type:varchar(255);null" json:"ecn"`
+	SeriesType  SeriesType   `gorm:"column:series_type;type:varchar(20);not null" json:"seriesType"`
+	PublishDays []PublishDay `gorm:"many2many:series_publish_days;" json:"publishDays"` // many to many relationship
+	Episodes    []Episode    `gorm:"many2many:series_episodes;" json:"episodes"`        // many to many relationship
+	Persons     []Person     `gorm:"many2many:series_persons;" json:"people"`           // many to many relationship
+	Genres      []Genre      `gorm:"many2many:series_genres;" json:"genres"`            // many to many relationship
+	PublisherId uint         `gorm:"column:publisher_id;type:int(11);null" json:"publisherId"`
+	Publisher   Publisher    `gorm:"foreignKey:PublisherId" json:"publisher"`
+	Providers   []Provider   `gorm:"many2many:series_providers;" json:"providers"` // many to many relationship
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
