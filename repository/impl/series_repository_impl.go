@@ -34,6 +34,34 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
+	if model.PublisherId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Append(&entity.Publisher{Id: model.PublisherId})
+		if err != nil {
+			log.Println("출판사 연결 실패")
+			exception.PanicLogging(err)
+			//return entity.Series{}, err
+		}
+	}
+
+	if model.PublishDayId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("PublishDays").Append(&entity.PublishDay{Id: model.PublishDayId})
+		if err != nil {
+			log.Println("연재 요일 연결 실패")
+			exception.PanicLogging(err)
+			//return entity.Series{}, err
+		}
+	}
+
+	if model.PersonId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Persons").Append(&entity.Person{Id: model.PersonId})
+		if err != nil {
+			log.Println("작가 연결 실패")
+			exception.PanicLogging(err)
+			//return entity.Series{}, err
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPerson{}).Where("series_id = ?", seriesResult.Id).Where("person_id = ?", model.PersonId).Update("person_type", "author")
+	}
+
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return entity.Series{}, result.Error
@@ -71,8 +99,11 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 	return seriesResult, nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayIdAndSeriesType(publishDayId uint, seriesType string) ([]entity.Series, error) {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
+	var seriesResult entity.Series
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Joins("PublishDays", seriesRepository.DB.Where(&entity.PublishDay{Day: publishDay})).Where("series_type = ?", seriesType).Find(&seriesResult)
+
+	return []entity.Series{seriesResult}, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error) {
@@ -105,9 +136,18 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (
 
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Find(&seriesResult)
-	if result.RowsAffected == 0 {
-		return []entity.Series{}, nil
+
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Persons").Find(&seriesResult)
+	if err.Error != nil {
+		exception.PanicLogging(err.Error)
+		return nil, err.Error
 	}
+
 	return seriesResult, nil
+
+	//result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Find(&seriesResult)
+	//if result.RowsAffected == 0 {
+	//	return []entity.Series{}, nil
+	//}
+	//return seriesResult, nil
 }

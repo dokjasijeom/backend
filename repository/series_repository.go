@@ -33,6 +33,6 @@ type SeriesRepository interface {
 	GetSeriesByGenreId(genreId uint) ([]entity.Series, error)
 	// Get Series by PublishDayId
 	GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error)
-	// Get Series by PublishDayId and SeriesType
-	GetSeriesByPublishDayIdAndSeriesType(publishDayId uint, seriesType string) ([]entity.Series, error)
+	// Get Series by PublishDays And SeriesType
+	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
 }

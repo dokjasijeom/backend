@@ -47,6 +47,8 @@ func main() {
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
+	seriesController := controller.NewSeriesController(&seriesService, config)
+
 	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, config)
 	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)
 	backofficeProviderController := backoffice.NewBackofficeProviderController(&providerService, config)
@@ -66,6 +68,7 @@ func main() {
 	userController.Route(app)
 	//roleController.Route(app)
 	testController.Route(app)
+	seriesController.Route(app)
 
 	backoffice := app.Group("/backoffice", middleware.AuthenticateJWT("ADMIN", config))
 	backofficeSeriesController.Route(backoffice)

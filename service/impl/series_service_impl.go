@@ -89,3 +89,12 @@ func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context) ([]ent
 	}
 	return result, nil
 }
+
+// Get PublishDay And SeriesType
+func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetSeriesByPublishDayAndSeriesType(ctx, publishDay, seriesType)
+	if err != nil {
+		return []entity.Series{}, nil
+	}
+	return result, nil
+}

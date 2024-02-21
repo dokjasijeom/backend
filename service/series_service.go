@@ -17,4 +17,6 @@ type SeriesService interface {
 	GetSeriesById(ctx context.Context, id uint) (entity.Series, error)
 	// Get all Series
 	GetAllSeries(ctx context.Context) ([]entity.Series, error)
+	// Get PublishDay And SeriesType
+	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
 }
