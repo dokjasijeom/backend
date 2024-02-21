@@ -72,13 +72,7 @@ func (publisherRepository *publisherRepositoryImpl) CreatePublisher(ctx context.
 }
 
 func (publisherRepository *publisherRepositoryImpl) UpdatePublisherHashId(ctx context.Context, id uint, hashId string) error {
-	var publisherResult entity.Publisher
-	result := publisherRepository.DB.WithContext(ctx).Model(&entity.Publisher{}).Where("id = ?", id).Find(&publisherResult)
-	if result.RowsAffected == 0 {
-		exception.PanicLogging("publisher not found")
-	}
-	publisherResult.HashId = hashId
-	result = publisherRepository.DB.WithContext(ctx).Model(&entity.Publisher{}).Save(&publisherResult)
+	result := publisherRepository.DB.WithContext(ctx).Model(&entity.Publisher{}).Where("id = ?", id).Updates(map[string]interface{}{"hash_id": hashId})
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return result.Error
