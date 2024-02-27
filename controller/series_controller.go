@@ -54,6 +54,8 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 	// result for and i want to change Thumbnail Variable value
 	for i, v := range result {
 		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
+		// series 결과 목록에서 Id 필드값을 제거
+		result[i].Id = 0
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{

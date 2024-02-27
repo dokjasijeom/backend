@@ -148,10 +148,5 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 		return nil, err.Error
 	}
 
-	// series 결과 목록에서 Id 필드값을 제거
-	for i := range seriesResult {
-		seriesResult[i].Id = 0
-	}
-
 	return seriesResult, nil
 }
