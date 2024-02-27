@@ -140,6 +140,10 @@ func (controller BackofficeSeriesController) GetAllSeries(ctx *fiber.Ctx) error 
 		return err
 	}
 
+	for i, v := range result {
+		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
+	}
+
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "Success",

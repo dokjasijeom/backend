@@ -11,7 +11,7 @@ type Person struct {
 	Name        string `gorm:"column:name;type:varchar(255);not null"`
 	Description string `gorm:"column:description;type:text;null"`
 
-	Series []Series `gorm:"many2many:series_persons;"` // many to many relationship
+	AuthorSeries []Series `gorm:"many2many:series_authors;"` // many to many relationship
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
