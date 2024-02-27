@@ -20,7 +20,7 @@ type SeriesRepository interface {
 	// Get All Series
 	GetAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get Series by HashId
-	GetSeriesByHashId(hashId string) (entity.Series, error)
+	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get Series by Title
 	GetSeriesByTitle(title string) (entity.Series, error)
 	// Get Series by SeriesType

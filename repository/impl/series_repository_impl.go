@@ -91,7 +91,7 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -135,8 +135,14 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (en
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(hashId string) (entity.Series, error) {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
+	var seriesResult entity.Series
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Where("hash_id = ?", hashId).First(&seriesResult)
+	if result.Error != nil {
+		return entity.Series{}, nil
+	}
+
+	return seriesResult, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {

@@ -15,6 +15,8 @@ type SeriesService interface {
 	DeleteSeriesById(ctx context.Context, id uint) error
 	// Get Series by Id
 	GetSeriesById(ctx context.Context, id uint) (entity.Series, error)
+	// Get Series by HashId
+	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get all Series
 	GetAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get PublishDay And SeriesType

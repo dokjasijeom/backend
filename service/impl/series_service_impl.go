@@ -81,6 +81,16 @@ func (seriesService *seriesServiceImpl) GetSeriesById(ctx context.Context, id ui
 	return result, nil
 }
 
+// Get Series by HashId
+func (seriesService *seriesServiceImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetSeriesByHashId(ctx, hashId)
+	if err != nil {
+		return entity.Series{}, nil
+	}
+	return result, nil
+
+}
+
 // Get all Series
 func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	result, err := seriesService.SeriesRepository.GetAllSeries(ctx)

@@ -20,7 +20,7 @@ type SeriesController struct {
 func (controller SeriesController) Route(app fiber.Router) {
 	series := app.Group("/series")
 	series.Get("/", controller.GetAllSeries)
-	series.Get("/:id", controller.GetSeriesById)
+	series.Get("/:hashId", controller.GetSeriesByHashId)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
@@ -65,6 +65,36 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 	})
 }
 
+// get series by hash id
+func (controller SeriesController) GetSeriesByHashId(ctx *fiber.Ctx) error {
+	hashId := ctx.Params("hashId")
+	if hashId == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid hashId",
+			Data:    nil,
+		})
+	}
+
+	result, err := controller.SeriesService.GetSeriesByHashId(ctx.Context(), hashId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	result.Id = 0
+	result.Thumbnail = controller.Config.Get("CLOUDINARY_URL") + result.Thumbnail
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
 // get series by id
 func (controller SeriesController) GetSeriesById(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
@@ -76,6 +106,9 @@ func (controller SeriesController) GetSeriesById(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	result.Id = 0
+	result.Thumbnail = controller.Config.Get("CLOUDINARY_URL") + result.Thumbnail
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
