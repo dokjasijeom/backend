@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"errors"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
@@ -45,6 +46,13 @@ func (personRepository *personRepositoryImpl) GetPersonByName(ctx context.Contex
 
 func (personRepository *personRepositoryImpl) CreatePerson(ctx context.Context, name string) (entity.Person, error) {
 	var personResult entity.Person
+	var existPersonResult entity.Person
+	personRepository.DB.WithContext(ctx).Where("name = ?", name).First(&existPersonResult)
+
+	if existPersonResult.Id != 0 {
+		return entity.Person{}, errors.New("이미 존재하는 이름입니다.")
+	}
+
 	personResult.Name = name
 	result := personRepository.DB.WithContext(ctx).Create(&personResult)
 	if result.RowsAffected == 0 {

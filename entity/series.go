@@ -30,7 +30,7 @@ type Series struct {
 	Publisher   Publisher  `gorm:"foreignKey:PublisherId" json:"publisher"`
 	Providers   []Provider `gorm:"many2many:series_providers;" json:"providers"` // many to many relationship
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }

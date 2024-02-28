@@ -100,8 +100,12 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
 	var seriesResult []entity.Series
+	var publishDayResult entity.PublishDay
+	var seriesIds []uint
 
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("PublishDays", "day = ?", publishDay).Where("series_type = ?", seriesType).Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.PublishDay{}).Where("day = ?", publishDay).First(&publishDayResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPublishDay{}).Where("publish_day_id = ?", publishDayResult.Id).Pluck("series_id", &seriesIds)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("PublishDays").Preload("Genres").Preload("Publisher").Preload("Authors").Find(&seriesResult)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
