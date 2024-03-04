@@ -95,6 +95,17 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
+
+	if seriesResult.SeriesType == "webnovel" {
+		seriesResult.DisplayTags = "#웹소설 "
+	} else {
+		seriesResult.DisplayTags = "#웹툰 "
+	}
+
+	for genreI := range seriesResult.Genres {
+		seriesResult.DisplayTags += "#" + seriesResult.Genres[genreI].Name + " "
+	}
+
 	return seriesResult, nil
 }
 
@@ -110,6 +121,16 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
 		seriesResult[i].Id = 0
+
+		if seriesResult[i].SeriesType == "webnovel" {
+			seriesResult[i].DisplayTags = "#웹소설 "
+		} else {
+			seriesResult[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range seriesResult[i].Genres {
+			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
+		}
 	}
 
 	return seriesResult, nil
@@ -156,6 +177,18 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 	if err.Error != nil {
 		exception.PanicLogging(err.Error)
 		return nil, err.Error
+	}
+
+	for i := range seriesResult {
+		if seriesResult[i].SeriesType == "webnovel" {
+			seriesResult[i].DisplayTags = "#웹소설 "
+		} else {
+			seriesResult[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range seriesResult[i].Genres {
+			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
+		}
 	}
 
 	return seriesResult, nil

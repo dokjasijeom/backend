@@ -29,6 +29,7 @@ type Series struct {
 	PublisherId uint       `gorm:"column:publisher_id;type:int(11);null" json:"publisherId"`
 	Publisher   Publisher  `gorm:"foreignKey:PublisherId" json:"publisher"`
 	Providers   []Provider `gorm:"many2many:series_providers;" json:"providers"` // many to many relationship
+	DisplayTags string     `gorm:"-" json:"displayTags"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
