@@ -21,12 +21,13 @@ import (
 	"strings"
 )
 
-func NewBackofficeSeriesController(seriesService *service.SeriesService, config configuration.Config) *BackofficeSeriesController {
-	return &BackofficeSeriesController{SeriesService: *seriesService, Config: config}
+func NewBackofficeSeriesController(seriesService *service.SeriesService, episodeService *service.EpisodeService, config configuration.Config) *BackofficeSeriesController {
+	return &BackofficeSeriesController{SeriesService: *seriesService, EpisodeService: *episodeService, Config: config}
 }
 
 type BackofficeSeriesController struct {
 	service.SeriesService
+	service.EpisodeService
 	configuration.Config
 }
 
@@ -36,6 +37,7 @@ func (controller BackofficeSeriesController) Route(app fiber.Router) {
 	series.Get("/", controller.GetAllSeries)
 	series.Get("/:id", controller.GetSeriesById)
 	series.Delete("/:id", controller.DeleteSeriesById)
+	series.Post("/:id/episodes", controller.CreateEpisode)
 }
 
 // Create Series
@@ -167,6 +169,37 @@ func (controller BackofficeSeriesController) DeleteSeriesById(ctx *fiber.Ctx) er
 		Code:    fiber.StatusNoContent,
 		Message: "Success",
 		Data:    nil,
+	})
+}
+
+func (controller BackofficeSeriesController) CreateEpisode(ctx *fiber.Ctx) error {
+	id, err := ctx.ParamsInt("id", 0)
+
+	if err != nil {
+		return err
+	}
+
+	var request struct {
+		EpisodeNumber string `json:"episodeNumber" validate:"required"`
+	}
+	err = ctx.BodyParser(&request)
+
+	request.EpisodeNumber = strings.TrimSpace(request.EpisodeNumber)
+	// request.episodenumber to uint
+	episodeNumber, err := strconv.ParseUint(request.EpisodeNumber, 10, 0)
+	if err != nil {
+		return err
+	}
+
+	episodes, err := controller.EpisodeService.CreateBulkEpisode(ctx.Context(), uint(id), uint(episodeNumber))
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    episodes,
 	})
 }
 
