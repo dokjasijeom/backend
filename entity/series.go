@@ -31,6 +31,7 @@ type Series struct {
 	Providers    []Provider `gorm:"many2many:series_providers;" json:"providers"` // many to many relationship
 	DisplayTags  string     `gorm:"-" json:"displayTags"`
 	TotalEpisode uint       `gorm:"-" json:"totalEpisode"`
+	IsComplete   bool       `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
