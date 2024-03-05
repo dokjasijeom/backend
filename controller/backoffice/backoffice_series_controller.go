@@ -180,18 +180,20 @@ func (controller BackofficeSeriesController) CreateEpisode(ctx *fiber.Ctx) error
 	}
 
 	var request struct {
-		EpisodeNumber string `json:"episodeNumber" validate:"required"`
+		EpisodeNumber uint `json:"episodeNumber" validate:"required"`
 	}
 	err = ctx.BodyParser(&request)
 
-	request.EpisodeNumber = strings.TrimSpace(request.EpisodeNumber)
-	// request.episodenumber to uint
-	episodeNumber, err := strconv.ParseUint(request.EpisodeNumber, 10, 0)
-	if err != nil {
-		return err
-	}
+	println(request.EpisodeNumber)
 
-	episodes, err := controller.EpisodeService.CreateBulkEpisode(ctx.Context(), uint(id), uint(episodeNumber))
+	//request.EpisodeNumber = strings.TrimSpace(request.EpisodeNumber)
+	//// request.episodenumber to uint
+	//episodeNumber, err := strconv.ParseUint(request.EpisodeNumber, 10, 0)
+	//if err != nil {
+	//	return err
+	//}
+
+	episodes, err := controller.EpisodeService.CreateBulkEpisode(ctx.Context(), uint(id), uint(request.EpisodeNumber))
 	if err != nil {
 		return err
 	}

@@ -91,7 +91,7 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -106,6 +106,11 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 		seriesResult.DisplayTags += "#" + seriesResult.Genres[genreI].Name + " "
 	}
 
+	seriesResult.TotalEpisode = uint(len(seriesResult.Episodes))
+
+	// DisplayTags 마지막 공백 제거
+	seriesResult.DisplayTags = seriesResult.DisplayTags[:len(seriesResult.DisplayTags)-1]
+
 	return seriesResult, nil
 }
 
@@ -116,7 +121,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 
 	seriesRepository.DB.WithContext(ctx).Model(&entity.PublishDay{}).Where("day = ?", publishDay).First(&publishDayResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPublishDay{}).Where("publish_day_id = ?", publishDayResult.Id).Pluck("series_id", &seriesIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("PublishDays").Preload("Genres").Preload("Publisher").Preload("Authors").Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("PublishDays").Preload("Genres").Preload("Publisher").Preload("Authors").Preload("Episodes").Find(&seriesResult)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -131,6 +136,9 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 		for genreI := range seriesResult[i].Genres {
 			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
 		}
+		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
+		// DisplayTags 마지막 공백 제거
+		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
 	}
 
 	return seriesResult, nil
@@ -162,7 +170,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (en
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Where("hash_id = ?", hashId).First(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
 	if result.Error != nil {
 		return entity.Series{}, nil
 	}
@@ -173,7 +181,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
 
-	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Find(&seriesResult)
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").Find(&seriesResult)
 	if err.Error != nil {
 		exception.PanicLogging(err.Error)
 		return nil, err.Error
@@ -189,6 +197,8 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 		for genreI := range seriesResult[i].Genres {
 			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
 		}
+		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
+		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
 	}
 
 	return seriesResult, nil

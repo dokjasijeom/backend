@@ -32,6 +32,7 @@ func main() {
 	publisherRepoistory := repository.NewPublisherRepositoryImpl(database)
 	publishDayRepository := repository.NewPublishDayRepositoryImpl(database)
 	personRepository := repository.NewPersonRepositoryImpl(database)
+	episodeRepository := repository.NewEpisodeRepositoryImpl(database)
 
 	// service
 	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
@@ -42,6 +43,7 @@ func main() {
 	publisherService := service.NewPublisherServiceImpl(&publisherRepoistory)
 	publishDayService := service.NewPublishDayServiceImpl(&publishDayRepository)
 	personService := service.NewPersonServiceImpl(&personRepository)
+	episodeService := service.NewEpisodeServiceImpl(&episodeRepository)
 
 	// controller
 	userController := controller.NewUserController(&userService, config)
@@ -49,7 +51,7 @@ func main() {
 	testController := controller.NewTestController(config)
 	seriesController := controller.NewSeriesController(&seriesService, config)
 
-	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, config)
+	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, &episodeService, config)
 	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)
 	backofficeProviderController := backoffice.NewBackofficeProviderController(&providerService, config)
 	backofficePublisherController := backoffice.NewBackofficePublisherController(&publisherService, config)
