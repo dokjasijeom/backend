@@ -83,6 +83,32 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 		request.PublishDayId = uint(u64)
 	}
 
+	if genreIds := form.Value["genreIds"]; len(genreIds) > 0 {
+		for _, v := range genreIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.GenreIds = append(request.GenreIds, uint(u64))
+		}
+	}
+
+	if personIds := form.Value["personIds"]; len(personIds) > 0 {
+		for _, v := range personIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.PersonIds = append(request.PersonIds, uint(u64))
+		}
+	}
+	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
+		for _, v := range providerIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.ProviderIds = append(request.ProviderIds, uint(u64))
+		}
+	}
+	if publishDayIds := form.Value["publishDayIds"]; len(publishDayIds) > 0 {
+		for _, v := range publishDayIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.PublishDayIds = append(request.PublishDayIds, uint(u64))
+		}
+	}
+
 	fileheader, err := ctx.FormFile("image")
 	if err != nil {
 		log.Println(0)
