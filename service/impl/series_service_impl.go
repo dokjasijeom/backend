@@ -63,8 +63,15 @@ func (seriesService *seriesServiceImpl) CreateSeries(ctx context.Context, series
 }
 
 // Update Series by Id
-func (seriesService *seriesServiceImpl) UpdateSeriesById(ctx context.Context, id uint, series entity.Series) (entity.Series, error) {
-	panic("implement me")
+func (seriesService *seriesServiceImpl) UpdateSeriesById(ctx context.Context, id uint, series entity.Series, model model.SeriesModel) (entity.Series, error) {
+	result, err := seriesService.SeriesRepository.UpdateSeriesById(ctx, id, series, model)
+	if err != nil {
+		exception.PanicLogging(err)
+		return entity.Series{}, nil
+	}
+
+	log.Println("Series ID: ", result.Id)
+	return result, nil
 }
 
 // Delete Series by Id

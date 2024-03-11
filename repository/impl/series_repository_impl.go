@@ -103,8 +103,102 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesHashId(ctx context.Con
 	return nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(id uint, series entity.Series) (entity.Series, error) {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Context, id uint, series entity.Series, model model.SeriesModel) (entity.Series, error) {
+	var seriesResult entity.Series
+	seriesResult = series
+
+	if model.GenreIds != nil {
+		// already exist genres all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Genres").Clear()
+		if err != nil {
+			log.Println("장르 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		seriesResult.Genres = nil
+		for _, genreId := range model.GenreIds {
+			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Genres").Append(&entity.Genre{Id: genreId})
+			if err != nil {
+				log.Println("장르 연결 실패")
+				exception.PanicLogging(err)
+			}
+		}
+	}
+
+	if model.PublishDayIds != nil {
+		// already exist publish days all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("PublishDays").Clear()
+		if err != nil {
+			log.Println("연재 요일 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		seriesResult.PublishDays = nil
+		for _, publishDayId := range model.PublishDayIds {
+			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("PublishDays").Append(&entity.PublishDay{Id: publishDayId})
+			if err != nil {
+				log.Println("연재 요일 연결 실패")
+				exception.PanicLogging(err)
+			}
+		}
+	}
+
+	if model.PersonId != 0 {
+		// already exist authors all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Clear()
+		if err != nil {
+			log.Println("작가 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		seriesResult.Authors = nil
+		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.PersonId})
+		if err != nil {
+			log.Println("작가 연결 실패")
+			exception.PanicLogging(err)
+		}
+	}
+
+	if model.ProviderIds != nil {
+		// already exist providers all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Providers").Clear()
+		if err != nil {
+			log.Println("제공자 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		seriesResult.Providers = nil
+		for _, providerId := range model.ProviderIds {
+			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Providers").Append(&entity.Provider{Id: providerId})
+			if err != nil {
+				log.Println("제공자 연결 실패")
+				exception.PanicLogging(err)
+			}
+		}
+	}
+
+	if model.PublisherId != 0 {
+		// already exist publisher all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Clear()
+		if err != nil {
+			log.Println("출판사 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Append(&entity.Publisher{Id: model.PublisherId})
+		if err != nil {
+			log.Println("출판사 연결 실패")
+			exception.PanicLogging(err)
+		}
+	}
+
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id = ?", id).Updates(&seriesResult)
+	if result.Error != nil {
+		exception.PanicLogging(result.Error)
+		return entity.Series{}, result.Error
+	}
+
+	return seriesResult, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Context, id uint) error {

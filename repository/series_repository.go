@@ -12,7 +12,7 @@ type SeriesRepository interface {
 	// Update Series HashId
 	UpdateSeriesHashId(ctx context.Context, id uint, hashId string) error
 	// Update Series by Id
-	UpdateSeriesById(id uint, series entity.Series) (entity.Series, error)
+	UpdateSeriesById(ctx context.Context, id uint, series entity.Series, model model.SeriesModel) (entity.Series, error)
 	// Delete Series by Id
 	DeleteSeriesById(ctx context.Context, id uint) error
 	// Get Series by Id

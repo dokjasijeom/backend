@@ -36,6 +36,7 @@ func (controller BackofficeSeriesController) Route(app fiber.Router) {
 	series.Post("/", controller.CreateSeries)
 	series.Get("/", controller.GetAllSeries)
 	series.Get("/:id", controller.GetSeriesById)
+	series.Patch("/:id", controller.UpdateSeriesById)
 	series.Delete("/:id", controller.DeleteSeriesById)
 	series.Post("/:id/episodes", controller.CreateEpisode)
 }
@@ -62,10 +63,6 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 	if ecn := form.Value["ecn"]; len(ecn) > 0 {
 		request.ECN = ecn[0]
 	}
-	if genreId := form.Value["genreId"]; len(genreId) > 0 {
-		u64, _ := strconv.ParseInt(genreId[0], 10, 0)
-		request.GenreId = uint(u64)
-	}
 	if personId := form.Value["personId"]; len(personId) > 0 {
 		u64, _ := strconv.ParseInt(personId[0], 10, 0)
 		request.PersonId = uint(u64)
@@ -74,26 +71,11 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 		u64, _ := strconv.ParseInt(publisherId[0], 10, 0)
 		request.PublisherId = uint(u64)
 	}
-	if providerId := form.Value["providerId"]; len(providerId) > 0 {
-		u64, _ := strconv.ParseInt(providerId[0], 10, 0)
-		request.ProviderId = uint(u64)
-	}
-	if publishDayId := form.Value["publishDayId"]; len(publishDayId) > 0 {
-		u64, _ := strconv.ParseInt(publishDayId[0], 10, 0)
-		request.PublishDayId = uint(u64)
-	}
 
 	if genreIds := form.Value["genreIds"]; len(genreIds) > 0 {
 		for _, v := range genreIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			request.GenreIds = append(request.GenreIds, uint(u64))
-		}
-	}
-
-	if personIds := form.Value["personIds"]; len(personIds) > 0 {
-		for _, v := range personIds {
-			u64, _ := strconv.ParseInt(v, 10, 0)
-			request.PersonIds = append(request.PersonIds, uint(u64))
 		}
 	}
 	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
@@ -137,6 +119,105 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 
 	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
 		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
+// Update Series by Id
+func (controller BackofficeSeriesController) UpdateSeriesById(ctx *fiber.Ctx) error {
+	id, err := ctx.ParamsInt("id")
+	if err != nil {
+		return err
+	}
+
+	seriesResult, err := controller.SeriesService.GetSeriesById(ctx.Context(), uint(id))
+	seriesModel := model.SeriesModel{}
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	if title := form.Value["title"]; len(title) > 0 && seriesResult.Title != title[0] {
+		seriesResult.Title = title[0]
+	}
+	if seriesType := form.Value["seriesType"]; len(seriesType) > 0 && seriesResult.SeriesType != entity.SeriesType(seriesType[0]) {
+		seriesResult.SeriesType = entity.SeriesType(seriesType[0])
+	}
+	if description := form.Value["description"]; len(description) > 0 && seriesResult.Description != description[0] {
+		seriesResult.Description = description[0]
+	}
+	if isbn := form.Value["isbn"]; len(isbn) > 0 && seriesResult.ISBN != isbn[0] {
+		seriesResult.ISBN = isbn[0]
+	}
+	if ecn := form.Value["ecn"]; len(ecn) > 0 && seriesResult.ECN != ecn[0] {
+		seriesResult.ECN = ecn[0]
+	}
+
+	if publisherId := form.Value["publisherId"]; len(publisherId) > 0 {
+		u64, _ := strconv.ParseInt(publisherId[0], 10, 0)
+		seriesModel.PublisherId = uint(u64)
+	}
+
+	if personId := form.Value["personId"]; len(personId) > 0 {
+		u64, _ := strconv.ParseInt(personId[0], 10, 0)
+		//seriesResult.Authors = nil
+		seriesModel.PersonId = uint(u64)
+	}
+
+	if genreIds := form.Value["genreIds"]; len(genreIds) > 0 {
+		//seriesResult.Genres = nil
+		for _, v := range genreIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.GenreIds = append(seriesModel.GenreIds, uint(u64))
+		}
+	}
+	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
+		//seriesResult.Providers = nil
+		for _, v := range providerIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.ProviderIds = append(seriesModel.ProviderIds, uint(u64))
+		}
+	}
+	if publishDayIds := form.Value["publishDayIds"]; len(publishDayIds) > 0 {
+		//seriesResult.PublishDays = nil
+		for _, v := range publishDayIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.PublishDayIds = append(seriesModel.PublishDayIds, uint(u64))
+		}
+	}
+
+	// if thumbnail is not empty, remove the old thumbnail
+	if fileheader, err := ctx.FormFile("image"); err == nil {
+		removeImage(ctx.Context(), seriesResult.Thumbnail)
+		if err != nil {
+			log.Println(0)
+			exception.PanicLogging(err)
+		}
+
+		file, err := fileheader.Open()
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+
+		buffer, err := io.ReadAll(file)
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+
+		ext := fileheader.Filename[strings.LastIndex(fileheader.Filename, "."):]
+
+		filename, err := imageProcessing(ctx.Context(), ext, buffer, 50)
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+		seriesResult.Thumbnail = filename
+	}
+
+	result, err := controller.SeriesService.UpdateSeriesById(ctx.Context(), uint(id), seriesResult, seriesModel)
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data:    result,
 	})
@@ -229,6 +310,24 @@ func (controller BackofficeSeriesController) CreateEpisode(ctx *fiber.Ctx) error
 		Message: "Success",
 		Data:    episodes,
 	})
+}
+
+func removeImage(ctx context.Context, filePath string) error {
+	cld, err := configuration.NewCloudinaryConfigruation()
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	filename := strings.TrimPrefix(filePath, "series/")
+
+	_, err = cld.Upload.Destroy(ctx, uploader.DestroyParams{
+		PublicID: filename,
+	})
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	return nil
 }
 
 func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality int) (string, error) {

@@ -10,7 +10,7 @@ type SeriesService interface {
 	// Create Series
 	CreateSeries(ctx context.Context, series model.SeriesModel) (entity.Series, error)
 	// Update Series by Id
-	UpdateSeriesById(ctx context.Context, id uint, series entity.Series) (entity.Series, error)
+	UpdateSeriesById(ctx context.Context, id uint, series entity.Series, model model.SeriesModel) (entity.Series, error)
 	// Delete Series by Id
 	DeleteSeriesById(ctx context.Context, id uint) error
 	// Get Series by Id
