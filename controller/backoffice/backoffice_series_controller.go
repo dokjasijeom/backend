@@ -63,6 +63,12 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 	if ecn := form.Value["ecn"]; len(ecn) > 0 {
 		request.ECN = ecn[0]
 	}
+	if isComplete := form.Value["isComplete"]; len(isComplete) > 0 {
+		request.IsComplete, err = strconv.ParseBool(isComplete[0])
+		if err != nil {
+			request.IsComplete = false
+		}
+	}
 	if personId := form.Value["personId"]; len(personId) > 0 {
 		u64, _ := strconv.ParseInt(personId[0], 10, 0)
 		request.PersonId = uint(u64)
@@ -152,6 +158,13 @@ func (controller BackofficeSeriesController) UpdateSeriesById(ctx *fiber.Ctx) er
 	}
 	if ecn := form.Value["ecn"]; len(ecn) > 0 && seriesResult.ECN != ecn[0] {
 		seriesResult.ECN = ecn[0]
+	}
+
+	if isComplete := form.Value["isComplete"]; len(isComplete) > 0 {
+		seriesResult.IsComplete, err = strconv.ParseBool(isComplete[0])
+		if err != nil {
+			seriesResult.IsComplete = false
+		}
 	}
 
 	if publisherId := form.Value["publisherId"]; len(publisherId) > 0 {
