@@ -6,14 +6,15 @@ import (
 )
 
 type User struct {
-	Id        uint    `gorm:"primaryKey;column:id;type:int;not null;autoIncrement"`
-	HashId    string  `gorm:"column:hash_id;type:varchar(255);null;unique"`
-	Email     string  `gorm:"column:email;unique;type:varchar(255);not null"`
-	Password  string  `gorm:"column:password;type:varchar(255);not null" json:"-"`
-	Roles     []*Role `gorm:"many2many:user_roles;"` // many to many relationship
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Id         uint           `gorm:"primaryKey;column:id;type:int;not null;autoIncrement" json:"-"`
+	HashId     string         `gorm:"column:hash_id;type:varchar(255);null;unique" json:"hashId,omitempty"`
+	Email      string         `gorm:"column:email;unique;type:varchar(255);not null" json:"email,omitempty" validate:"required,email"`
+	Password   string         `gorm:"column:password;type:varchar(255);not null" json:"-"`
+	Roles      []*Role        `gorm:"many2many:user_roles;"`                                   // many to many relationship
+	LikeSeries []*Series      `gorm:"many2many:user_like_series;" json:"likeSeries,omitempty"` // many to many relationship
+	CreatedAt  time.Time      `json:"-"`
+	UpdatedAt  time.Time      `json:"-"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (User) TableName() string {
