@@ -69,12 +69,14 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
-	if model.PublisherId != 0 {
-		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Append(&entity.Publisher{Id: model.PublisherId})
-		if err != nil {
-			log.Println("출판사 연결 실패")
-			exception.PanicLogging(err)
-			//return entity.Series{}, err
+	if model.PublisherIds != nil {
+		for _, publisherId := range model.PublisherIds {
+			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publishers").Append(&entity.Publisher{Id: publisherId})
+			if err != nil {
+				log.Println("출판사 연결 실패")
+				exception.PanicLogging(err)
+				//return entity.Series{}, err
+			}
 		}
 	}
 
@@ -106,6 +108,24 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesHashId(ctx context.Con
 func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Context, id uint, series entity.Series, model model.SeriesModel) (entity.Series, error) {
 	var seriesResult entity.Series
 	seriesResult = series
+
+	if model.PublisherIds != nil {
+		// already exist publishers all remove for gorm
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publishers").Clear()
+		if err != nil {
+			log.Println("출판사 연결 해제 실패")
+			exception.PanicLogging(err)
+		}
+
+		seriesResult.Publishers = nil
+		for _, publisherId := range model.PublisherIds {
+			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publishers").Append(&entity.Publisher{Id: publisherId})
+			if err != nil {
+				log.Println("출판사 연결 실패")
+				exception.PanicLogging(err)
+			}
+		}
+	}
 
 	if model.GenreIds != nil {
 		// already exist genres all remove for gorm
@@ -174,21 +194,6 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 				log.Println("제공자 연결 실패")
 				exception.PanicLogging(err)
 			}
-		}
-	}
-
-	if model.PublisherId != 0 {
-		// already exist publisher all remove for gorm
-		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Clear()
-		if err != nil {
-			log.Println("출판사 연결 해제 실패")
-			exception.PanicLogging(err)
-		}
-
-		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Publisher").Append(&entity.Publisher{Id: model.PublisherId})
-		if err != nil {
-			log.Println("출판사 연결 실패")
-			exception.PanicLogging(err)
 		}
 	}
 

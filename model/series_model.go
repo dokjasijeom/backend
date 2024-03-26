@@ -20,6 +20,7 @@ type SeriesModel struct {
 	PublishDayId  uint              `form:"publishDayId,omitempty"`
 	GenreIds      []uint            `form:"genreIds,omitempty"`
 	PersonIds     []uint            `form:"personIds,omitempty"`
+	PublisherIds  []uint            `form:"publisherIds,omitempty"`
 	ProviderIds   []uint            `form:"providerIds,omitempty"`
 	PublishDayIds []uint            `form:"publishDayIds,omitempty"`
 	IsComplete    bool              `form:"isCompleted,omitempty"`

@@ -73,9 +73,11 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 		u64, _ := strconv.ParseInt(personId[0], 10, 0)
 		request.PersonId = uint(u64)
 	}
-	if publisherId := form.Value["publisherId"]; len(publisherId) > 0 {
-		u64, _ := strconv.ParseInt(publisherId[0], 10, 0)
-		request.PublisherId = uint(u64)
+	if publisherIds := form.Value["publisherIds"]; len(publisherIds) > 0 {
+		for _, v := range publisherIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.PublisherIds = append(request.PublisherIds, uint(u64))
+		}
 	}
 
 	if genreIds := form.Value["genreIds"]; len(genreIds) > 0 {
@@ -167,33 +169,31 @@ func (controller BackofficeSeriesController) UpdateSeriesById(ctx *fiber.Ctx) er
 		}
 	}
 
-	if publisherId := form.Value["publisherId"]; len(publisherId) > 0 {
-		u64, _ := strconv.ParseInt(publisherId[0], 10, 0)
-		seriesModel.PublisherId = uint(u64)
-	}
-
 	if personId := form.Value["personId"]; len(personId) > 0 {
 		u64, _ := strconv.ParseInt(personId[0], 10, 0)
-		//seriesResult.Authors = nil
 		seriesModel.PersonId = uint(u64)
 	}
 
+	if publisherIds := form.Value["publisherIds"]; len(publisherIds) > 0 {
+		for _, v := range publisherIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.PublisherIds = append(seriesModel.PublisherIds, uint(u64))
+		}
+	}
+
 	if genreIds := form.Value["genreIds"]; len(genreIds) > 0 {
-		//seriesResult.Genres = nil
 		for _, v := range genreIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			seriesModel.GenreIds = append(seriesModel.GenreIds, uint(u64))
 		}
 	}
 	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
-		//seriesResult.Providers = nil
 		for _, v := range providerIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			seriesModel.ProviderIds = append(seriesModel.ProviderIds, uint(u64))
 		}
 	}
 	if publishDayIds := form.Value["publishDayIds"]; len(publishDayIds) > 0 {
-		//seriesResult.PublishDays = nil
 		for _, v := range publishDayIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			seriesModel.PublishDayIds = append(seriesModel.PublishDayIds, uint(u64))

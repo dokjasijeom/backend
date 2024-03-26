@@ -24,14 +24,13 @@ type Series struct {
 	PublishDays []PublishDay `gorm:"many2many:series_publish_days;" json:"publishDays"` // many to many relationship
 	Episodes    []Episode    `gorm:"many2many:series_episodes;" json:"episodes"`        // many to many relationship
 	//Persons     []Person     `gorm:"many2many:series_persons;" json:"people"`           // many to many relationship
-	Genres       []Genre    `gorm:"many2many:series_genres;" json:"genres"`   // many to many relationship
-	Authors      []Person   `gorm:"many2many:series_authors;" json:"authors"` // many to many relationship
-	PublisherId  uint       `gorm:"column:publisher_id;type:int(11);null" json:"publisherId"`
-	Publisher    Publisher  `gorm:"foreignKey:PublisherId" json:"publisher"`
-	Providers    []Provider `gorm:"many2many:series_providers;" json:"providers"` // many to many relationship
-	DisplayTags  string     `gorm:"-" json:"displayTags"`
-	TotalEpisode uint       `gorm:"-" json:"totalEpisode"`
-	IsComplete   bool       `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
+	Genres       []Genre     `gorm:"many2many:series_genres;" json:"genres"`         // many to many relationship
+	Authors      []Person    `gorm:"many2many:series_authors;" json:"authors"`       // many to many relationship
+	Publishers   []Publisher `gorm:"many2many:series_publishers;" json:"publishers"` // many to many relationship
+	Providers    []Provider  `gorm:"many2many:series_providers;" json:"providers"`   // many to many relationship
+	DisplayTags  string      `gorm:"-" json:"displayTags"`
+	TotalEpisode uint        `gorm:"-" json:"totalEpisode"`
+	IsComplete   bool        `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
