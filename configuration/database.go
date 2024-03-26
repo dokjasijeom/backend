@@ -53,6 +53,8 @@ func ConnectDatabase() *gorm.DB {
 	database.AutoMigrate(&entity.SeriesAuthor{})
 	database.AutoMigrate(&entity.SeriesPublishDay{})
 	database.AutoMigrate(&entity.SeriesProvider{})
+	database.AutoMigrate(&entity.UserLikeSeries{})
+	database.AutoMigrate(&entity.UserLikeSeriesCount{})
 
 	return database
 }

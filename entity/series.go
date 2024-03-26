@@ -28,6 +28,7 @@ type Series struct {
 	Authors      []Person    `gorm:"many2many:series_authors;" json:"authors"`       // many to many relationship
 	Publishers   []Publisher `gorm:"many2many:series_publishers;" json:"publishers"` // many to many relationship
 	Providers    []Provider  `gorm:"many2many:series_providers;" json:"providers"`   // many to many relationship
+	LikeCount    uint        `gorm:"column:like_count;type:int(11);not null;default:0;index" json:"likeCount"`
 	DisplayTags  string      `gorm:"-" json:"displayTags"`
 	TotalEpisode uint        `gorm:"-" json:"totalEpisode"`
 	IsComplete   bool        `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`

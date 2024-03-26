@@ -35,4 +35,6 @@ type SeriesRepository interface {
 	GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error)
 	// Get Series by PublishDays And SeriesType
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
+	// Like Series
+	LikeSeries(ctx context.Context, userId uint, seriesId uint) error
 }

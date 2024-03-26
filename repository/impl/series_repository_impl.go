@@ -216,7 +216,7 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors").Preload("Episodes").First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -246,7 +246,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 
 	seriesRepository.DB.WithContext(ctx).Model(&entity.PublishDay{}).Where("day = ?", publishDay).First(&publishDayResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPublishDay{}).Where("publish_day_id = ?", publishDayResult.Id).Pluck("series_id", &seriesIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("Providers").Preload("PublishDays").Preload("Genres").Preload("Publisher").Preload("Authors").Preload("Episodes").Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("Providers").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("Authors").Preload("Episodes").Find(&seriesResult)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -295,7 +295,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (en
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
 	if result.Error != nil {
 		return entity.Series{}, nil
 	}
@@ -306,7 +306,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
 
-	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publisher").Preload("PublishDays").Preload("Authors").Preload("Episodes").Find(&seriesResult)
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors").Preload("Episodes").Find(&seriesResult)
 	if err.Error != nil {
 		exception.PanicLogging(err.Error)
 		return nil, err.Error
@@ -327,4 +327,13 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 	}
 
 	return seriesResult, nil
+}
+
+// Like Series
+func (seriesRepository *seriesRepositoryImpl) LikeSeries(ctx context.Context, userId uint, seriesId uint) error {
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.UserLikeSeries{}).Create(&entity.UserLikeSeries{UserId: userId, SeriesId: seriesId})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

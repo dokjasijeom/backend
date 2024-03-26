@@ -13,9 +13,9 @@ type Person struct {
 
 	AuthorSeries []Series `gorm:"many2many:series_authors;" json:"series,omitempty"` // many to many relationship
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (Person) TableName() string {

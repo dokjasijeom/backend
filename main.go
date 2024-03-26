@@ -49,7 +49,7 @@ func main() {
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
-	seriesController := controller.NewSeriesController(&seriesService, config)
+	seriesController := controller.NewSeriesController(&seriesService, &userService, config)
 
 	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, &episodeService, config)
 	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)

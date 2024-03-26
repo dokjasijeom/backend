@@ -3,17 +3,20 @@ package controller
 import (
 	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/middleware"
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func NewSeriesController(seriesService *service.SeriesService, config configuration.Config) *SeriesController {
-	return &SeriesController{SeriesService: *seriesService, Config: config}
+func NewSeriesController(seriesService *service.SeriesService, userService *service.UserService, config configuration.Config) *SeriesController {
+	return &SeriesController{SeriesService: *seriesService, UserService: *userService, Config: config}
 }
 
 type SeriesController struct {
 	service.SeriesService
+	service.UserService
 	configuration.Config
 }
 
@@ -21,6 +24,7 @@ func (controller SeriesController) Route(app fiber.Router) {
 	series := app.Group("/series")
 	series.Get("/", controller.GetAllSeries)
 	series.Get("/:hashId", controller.GetSeriesByHashId)
+	series.Post("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.LikeSeries)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
@@ -114,5 +118,46 @@ func (controller SeriesController) GetSeriesById(ctx *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "Success",
 		Data:    result,
+	})
+}
+
+// like series
+func (controller SeriesController) LikeSeries(ctx *fiber.Ctx) error {
+	hashId := ctx.Params("hashId")
+	if hashId == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid hashId",
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	series, err := controller.SeriesService.GetSeriesByHashId(ctx.Context(), hashId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	err = controller.SeriesService.LikeSeries(ctx.Context(), userEntity.Id, series.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
 	})
 }
