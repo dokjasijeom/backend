@@ -36,17 +36,6 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
-	if model.PersonIds != nil {
-		for _, personId := range model.PersonIds {
-			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: personId})
-			if err != nil {
-				log.Println("작가 연결 실패")
-				exception.PanicLogging(err)
-				//return entity.Series{}, err
-			}
-		}
-	}
-
 	if model.ProviderIds != nil {
 		for _, providerId := range model.ProviderIds {
 			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Providers").Append(&entity.Provider{Id: providerId})
@@ -80,13 +69,32 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
-	if model.PersonId != 0 {
-		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.PersonId})
+	if model.AuthorId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.AuthorId})
+
 		if err != nil {
 			log.Println("작가 연결 실패")
 			exception.PanicLogging(err)
-			//return entity.Series{}, err
 		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.AuthorId).Update("person_type", "author")
+	}
+
+	if model.IllustratorId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.IllustratorId})
+		if err != nil {
+			log.Println("그림 작가 연결 실패")
+			exception.PanicLogging(err)
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.IllustratorId).Update("person_type", "illustrator")
+	}
+
+	if model.OriginalAuthorId != 0 {
+		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.OriginalAuthorId})
+		if err != nil {
+			log.Println("원작 작가 연결 실패")
+			exception.PanicLogging(err)
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.OriginalAuthorId).Update("person_type", "original_author")
 	}
 
 	if result.Error != nil {
@@ -163,7 +171,7 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 		}
 	}
 
-	if model.PersonId != 0 {
+	if model.AuthorId != 0 || model.IllustratorId != 0 || model.OriginalAuthorId != 0 {
 		// already exist authors all remove for gorm
 		err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Clear()
 		if err != nil {
@@ -172,11 +180,26 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 		}
 
 		seriesResult.Authors = nil
-		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.PersonId})
+		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.AuthorId})
 		if err != nil {
 			log.Println("작가 연결 실패")
 			exception.PanicLogging(err)
 		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.AuthorId).Update("person_type", "author")
+
+		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.IllustratorId})
+		if err != nil {
+			log.Println("그림 작가 연결 실패")
+			exception.PanicLogging(err)
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.IllustratorId).Update("person_type", "illustrator")
+
+		err = seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Authors").Append(&entity.Person{Id: model.OriginalAuthorId})
+		if err != nil {
+			log.Println("원작 작가 연결 실패")
+			exception.PanicLogging(err)
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesAuthor{}).Where("series_id = ? and person_id = ?", seriesResult.Id, model.OriginalAuthorId).Update("person_type", "original_author")
 	}
 
 	if model.ProviderIds != nil {
@@ -216,7 +239,9 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors").Preload("Episodes").First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors", func(db *gorm.DB) *gorm.DB {
+		return db.Select("person.*, series_authors.person_type").Joins("left join series_authors on series_authors.person_id = person.id").Where("series_authors.series_id = ?", seriesResult.Id)
+	}).Preload("Episodes").First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -295,7 +320,9 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (en
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("Authors", func(db *gorm.DB) *gorm.DB {
+		return db.Select("person.*, series_authors.person_type").Joins("left join series_authors on series_authors.person_id = person.id").Where("series_authors.series_id = ?", seriesResult.Id)
+	}).Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
 	if result.Error != nil {
 		return entity.Series{}, nil
 	}

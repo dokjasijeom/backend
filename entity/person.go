@@ -10,6 +10,7 @@ type Person struct {
 	HashId      string `gorm:"column:hash_id;type:varchar(255);not null" json:"hashId,omitempty"`
 	Name        string `gorm:"column:name;type:varchar(255);not null" json:"name,omitempty"`
 	Description string `gorm:"column:description;type:text;null" json:"description,omitempty"`
+	PersonType  string `gorm:"-:migration;->" json:"personType,omitempty"`
 
 	AuthorSeries []Series `gorm:"many2many:series_authors;" json:"series,omitempty"` // many to many relationship
 

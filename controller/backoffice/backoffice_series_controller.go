@@ -69,9 +69,18 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 			request.IsComplete = false
 		}
 	}
-	if personId := form.Value["personId"]; len(personId) > 0 {
-		u64, _ := strconv.ParseInt(personId[0], 10, 0)
-		request.PersonId = uint(u64)
+	if authorId := form.Value["authorId"]; len(authorId) > 0 {
+		u64, _ := strconv.ParseInt(authorId[0], 10, 0)
+		request.AuthorId = uint(u64)
+	}
+	if illustratorId := form.Value["illustratorId"]; len(illustratorId) > 0 {
+		u64, _ := strconv.ParseInt(illustratorId[0], 10, 0)
+		request.IllustratorId = uint(u64)
+	}
+	if originalAuthorId := form.Value["originalAuthorId"]; len(originalAuthorId) > 0 {
+		u64, _ := strconv.ParseInt(originalAuthorId[0], 10, 0)
+		request.OriginalAuthorId = uint(u64)
+
 	}
 	if publisherIds := form.Value["publisherIds"]; len(publisherIds) > 0 {
 		for _, v := range publisherIds {
