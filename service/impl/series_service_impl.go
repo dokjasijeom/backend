@@ -76,7 +76,12 @@ func (seriesService *seriesServiceImpl) UpdateSeriesById(ctx context.Context, id
 
 // Delete Series by Id
 func (seriesService *seriesServiceImpl) DeleteSeriesById(ctx context.Context, id uint) error {
-	panic("implement me")
+	err := seriesService.SeriesRepository.DeleteSeriesById(ctx, id)
+	if err != nil {
+		exception.PanicLogging(err)
+		return err
+	}
+	return nil
 }
 
 // Get Series by Id

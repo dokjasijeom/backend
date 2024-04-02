@@ -37,3 +37,18 @@ type Series struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+func (Series) TableName() string {
+	return "series"
+}
+
+// after delete
+func (s *Series) AfterDelete(tx *gorm.DB) (err error) {
+	tx.Model(&SeriesEpisode{}).Where("series_id = ?", s.Id).Delete(&SeriesEpisode{})
+	tx.Model(&SeriesGenre{}).Where("series_id = ?", s.Id).Delete(&SeriesGenre{})
+	tx.Model(&SeriesAuthor{}).Where("series_id = ?", s.Id).Delete(&SeriesAuthor{})
+	tx.Model(&SeriesPublisher{}).Where("series_id = ?", s.Id).Delete(&SeriesPublisher{})
+	tx.Model(&SeriesProvider{}).Where("series_id = ?", s.Id).Delete(&SeriesProvider{})
+	tx.Model(&SeriesPublishDay{}).Where("series_id = ?", s.Id).Delete(&SeriesPublishDay{})
+	return
+}

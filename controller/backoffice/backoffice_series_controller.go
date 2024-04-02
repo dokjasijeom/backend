@@ -289,6 +289,14 @@ func (controller BackofficeSeriesController) DeleteSeriesById(ctx *fiber.Ctx) er
 		return err
 	}
 
+	seriesResult, err := controller.SeriesService.GetSeriesById(ctx.Context(), uint(id))
+	if err != nil {
+		return err
+	}
+	if seriesResult.Thumbnail != "" {
+		removeImage(ctx.Context(), seriesResult.Thumbnail)
+	}
+
 	result := controller.SeriesService.DeleteSeriesById(ctx.Context(), uint(id))
 	if result != nil {
 		return result

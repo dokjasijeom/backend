@@ -60,6 +60,19 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
 		// series 결과 목록에서 Id 필드값을 제거
 		result[i].Id = 0
+
+		// authors for
+		for j, _ := range v.Authors {
+			result[i].Authors[j].Id = 0
+		}
+		// publishers for
+		for j, _ := range v.Publishers {
+			result[i].Publishers[j].Id = 0
+		}
+		// genres for
+		for j, _ := range v.Genres {
+			result[i].Genres[j].Id = 0
+		}
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
@@ -113,6 +126,18 @@ func (controller SeriesController) GetSeriesById(ctx *fiber.Ctx) error {
 
 	result.Id = 0
 	result.Thumbnail = controller.Config.Get("CLOUDINARY_URL") + result.Thumbnail
+	// authors for
+	for j, _ := range result.Authors {
+		result.Authors[j].Id = 0
+	}
+	// publishers for
+	for j, _ := range result.Publishers {
+		result.Publishers[j].Id = 0
+	}
+	// genres for
+	for j, _ := range result.Genres {
+		result.Genres[j].Id = 0
+	}
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
