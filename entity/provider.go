@@ -17,3 +17,11 @@ type Provider struct {
 	UpdatedAt   time.Time      `json:"-"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+func (Provider) TableName() string {
+	return "provider"
+}
+
+func (provider *Provider) AfterDelete(tx *gorm.DB) (err error) {
+	return tx.Model(provider).Association("Series").Clear()
+}

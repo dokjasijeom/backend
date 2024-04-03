@@ -22,3 +22,7 @@ type Person struct {
 func (Person) TableName() string {
 	return "person"
 }
+
+func (person *Person) AfterDelete(tx *gorm.DB) (err error) {
+	return tx.Model(person).Association("AuthorSeries").Clear()
+}
