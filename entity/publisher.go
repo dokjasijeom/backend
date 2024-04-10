@@ -17,10 +17,6 @@ type Publisher struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (Publisher) TableName() string {
-	return "publisher"
-}
-
 func (publisher *Publisher) AfterDelete(tx *gorm.DB) (err error) {
 	return tx.Model(publisher).Association("Series").Clear()
 }
