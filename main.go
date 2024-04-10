@@ -9,6 +9,7 @@ import (
 	service "github.com/dokjasijeom/backend/service/impl"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -66,6 +67,10 @@ func main() {
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(cors.New())
+	app.Use(favicon.New(favicon.Config{
+		File: "./favicon.ico",
+		URL:  "/favicon.ico",
+	}))
 
 	userController.Route(app)
 	//roleController.Route(app)
