@@ -39,3 +39,28 @@ jobs:
             docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.branch-names.outputs.current_branch }}-$IMAGE_TAG .
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.branch-names.outputs.current_branch }}-$IMAGE_TAG
             echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.branch-names.outputs.current_branch }}-$IMAGE_TAG"
+
+  deploy:
+    name: Deploy to AWS Lightsail
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Connect Lightsail and execute deploy script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USERNAME }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            sudo su -
+            ./deploy.sh
