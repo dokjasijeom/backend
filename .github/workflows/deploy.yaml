@@ -62,5 +62,4 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USERNAME }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           script: |
-            sudo su -
-            ./deploy.sh
+            sudo su - -c "./deploy.sh"
