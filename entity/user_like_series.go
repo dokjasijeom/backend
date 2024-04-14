@@ -7,10 +7,6 @@ type UserLikeSeries struct {
 	SeriesId uint `gorm:"primaryKey;column:series_id;type:int(11);not null"`
 }
 
-func (UserLikeSeries) TableName() string {
-	return "user_like_series"
-}
-
 func (uls *UserLikeSeries) AfterCreate(tx *gorm.DB) (err error) {
 	var ulsc UserLikeSeriesCount
 	tx.Model(&ulsc).Where("series_id = ?", uls.SeriesId).First(&ulsc)

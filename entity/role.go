@@ -9,10 +9,6 @@ type Role struct {
 	// Role: ADMIN, USER
 }
 
-func (Role) TableName() string {
-	return "role"
-}
-
 func (Role) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }

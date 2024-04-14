@@ -9,10 +9,6 @@ type UserRole struct {
 	RoleId uint `gorm:"column:role_id;type:int(11);not null"`
 }
 
-func (UserRole) TableName() string {
-	return "user_roles"
-}
-
 func (UserRole) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }

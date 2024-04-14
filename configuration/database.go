@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 	"log"
 	"os"
 )
@@ -23,15 +24,20 @@ func ConnectDatabase() *gorm.DB {
 	releaseMode := os.Getenv("RELEASE_MODE")
 	log.Println("releaseMode: ", releaseMode)
 
-	dsn := func(releaseMode string) string {
+	dsn := os.Getenv("DSN")
+
+	tablePrefix := func(releaseMode string) string {
 		if releaseMode == "development" {
-			return os.Getenv("DEV_DSN")
+			return "dev_"
 		} else {
-			return os.Getenv("MAIN_DSN")
+			return ""
 		}
 	}(releaseMode)
 
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix: tablePrefix,
+		},
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {

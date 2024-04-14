@@ -17,10 +17,6 @@ type User struct {
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (User) TableName() string {
-	return "user"
-}
-
 func (User) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }

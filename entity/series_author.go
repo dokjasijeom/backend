@@ -16,7 +16,3 @@ type SeriesAuthor struct {
 	CreatedAt time.Time
 	DeletedAt gorm.DeletedAt
 }
-
-func (SeriesAuthor) TableName() string {
-	return "series_authors"
-}
