@@ -23,6 +23,7 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 	var seriesResult entity.Series
 	seriesResult = series
 	var authorResult entity.SeriesAuthor
+	var providerResult entity.SeriesProvider
 
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Create(&seriesResult)
 
@@ -37,13 +38,12 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
-	if model.ProviderIds != nil {
-		for _, providerId := range model.ProviderIds {
-			err := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Association("Providers").Append(&entity.Provider{Id: providerId})
-			if err != nil {
+	if model.Providers != nil {
+		for _, provider := range model.Providers {
+			result := seriesRepository.DB.WithContext(ctx).Model(&providerResult).Create(&entity.SeriesProvider{SeriesId: seriesResult.Id, ProviderId: provider.ProviderId, Link: provider.Link})
+			if result.Error != nil {
 				log.Println("제공자 연결 실패")
-				exception.PanicLogging(err)
-				//return entity.Series{}, err
+				exception.PanicLogging(result.Error)
 			}
 		}
 	}
@@ -389,7 +389,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
 
-	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
 	if err.Error != nil {
 		exception.PanicLogging(err.Error)
 		return nil, err.Error

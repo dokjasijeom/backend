@@ -32,7 +32,7 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Find(&userResult)
 	err := result.Error
 
 	return userResult, err
@@ -66,7 +66,7 @@ func (userRepository *userRepositoryImpl) CreateUser(email, password string) (en
 func (userRepository *userRepositoryImpl) UpdateUserHashId(ctx context.Context, email string, hashId string) error {
 	var userResult entity.User
 
-	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Find(&userResult)
 	if result.RowsAffected == 0 {
 		exception.PanicLogging("user not found")
 	}
@@ -91,7 +91,7 @@ func (userRepository *userRepositoryImpl) DeleteUserByEmail(email string) error 
 
 func (userRepository *userRepositoryImpl) Authenticate(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("user.email = ?", email).Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Find(&userResult)
 	if result.RowsAffected == 0 {
 		return entity.User{}, errors.New("user not found")
 	}

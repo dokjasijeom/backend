@@ -24,15 +24,17 @@ type Series struct {
 	PublishDays []PublishDay `gorm:"many2many:series_publish_days;" json:"publishDays"` // many to many relationship
 	Episodes    []Episode    `gorm:"many2many:series_episodes;" json:"episodes"`        // many to many relationship
 	//Persons     []Person     `gorm:"many2many:series_persons;" json:"people"`           // many to many relationship
-	Genres        []Genre        `gorm:"many2many:series_genres;" json:"genres"` // many to many relationship
-	SeriesAuthors []SeriesAuthor `json:"-"`                                      // many to many relationship
-	Authors       []Person       `gorm:"-" json:"authors"`
-	Publishers    []Publisher    `gorm:"many2many:series_publishers;" json:"publishers"` // many to many relationship
-	Providers     []Provider     `gorm:"many2many:series_providers;" json:"providers"`   // many to many relationship
-	LikeCount     uint           `gorm:"column:like_count;type:int(11);not null;default:0;index" json:"likeCount"`
-	DisplayTags   string         `gorm:"-" json:"displayTags"`
-	TotalEpisode  uint           `gorm:"-" json:"totalEpisode"`
-	IsComplete    bool           `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
+	Genres         []Genre          `gorm:"many2many:series_genres;" json:"genres"` // many to many relationship
+	SeriesAuthors  []SeriesAuthor   `json:"-"`                                      // many to many relationship
+	Authors        []Person         `gorm:"-" json:"authors"`
+	Publishers     []Publisher      `gorm:"many2many:series_publishers;" json:"publishers"` // many to many relationship
+	SeriesProvider []SeriesProvider `json:"-"`                                              // many to many relationship
+	Providers      []Provider       `gorm:"-" json:"providers"`
+	//Providers      []Provider       `gorm:"many2many:series_providers;" json:"providers"`   // many to many relationship
+	LikeCount    uint   `gorm:"column:like_count;type:int(11);not null;default:0;index" json:"likeCount"`
+	DisplayTags  string `gorm:"-" json:"displayTags"`
+	TotalEpisode uint   `gorm:"-" json:"totalEpisode"`
+	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`

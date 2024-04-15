@@ -59,7 +59,7 @@ func (publishDayRepository *publishDayRepositoryImpl) UpdatePublishDay(ctx conte
 
 func (publishDayRepository *publishDayRepositoryImpl) GetPublishDayById(ctx context.Context, publishDayId uint) (entity.PublishDay, error) {
 	var publishDayResult entity.PublishDay
-	result := publishDayRepository.DB.WithContext(ctx).Where("publish_day.id = ?", publishDayId).Find(&publishDayResult)
+	result := publishDayRepository.DB.WithContext(ctx).Where("id = ?", publishDayId).Find(&publishDayResult)
 	if result.Error != nil {
 		return entity.PublishDay{}, result.Error
 	}

@@ -3,6 +3,7 @@ package backoffice
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
@@ -93,6 +94,14 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			request.GenreIds = append(request.GenreIds, uint(u64))
 		}
+	}
+	if providers := form.Value["providers"]; len(providers) > 0 {
+		err := json.NewDecoder(strings.NewReader(providers[0])).Decode(&request.Providers)
+
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+		log.Println(request.Providers)
 	}
 	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
 		for _, v := range providerIds {
