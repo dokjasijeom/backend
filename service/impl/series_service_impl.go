@@ -158,7 +158,8 @@ func (seriesService *seriesServiceImpl) GetSeriesIdAndTitlesByTitle(ctx context.
 		result[i].Genres = nil
 		result[i].PublishDays = nil
 		result[i].Episodes = nil
-		result[i].IsComplete = false
+		// true, false밖에 없어 무조건 노출되는 것으로 변경
+		//result[i].IsComplete = false
 		result[i].LikeCount = 0
 		result[i].TotalEpisode = 0
 	}

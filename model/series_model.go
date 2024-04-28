@@ -27,5 +27,5 @@ type SeriesModel struct {
 	ProviderIds      []uint              `form:"providerIds,omitempty"`
 	Providers        []ProviderLinkModel `form:"providers,omitempty"`
 	PublishDayIds    []uint              `form:"publishDayIds,omitempty"`
-	IsComplete       bool                `form:"isCompleted,omitempty"`
+	IsComplete       bool                `form:"isComplete,omitempty"`
 }

@@ -34,7 +34,7 @@ type Series struct {
 	LikeCount    uint   `gorm:"column:like_count;type:int(11);not null;default:0;index" json:"likeCount,omitempty"`
 	DisplayTags  string `gorm:"-" json:"displayTags,omitempty"`
 	TotalEpisode uint   `gorm:"-" json:"totalEpisode,omitempty"`
-	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false,omitempty"`
+	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
