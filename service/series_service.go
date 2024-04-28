@@ -23,4 +23,8 @@ type SeriesService interface {
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
 	// Like Series
 	LikeSeries(ctx context.Context, userId uint, seriesId uint) error
+	// Get Series By Title
+	GetSeriesByTitle(ctx context.Context, title string) ([]entity.Series, error)
+	// Get Series Id And Title by Title
+	GetSeriesIdAndTitlesByTitle(ctx context.Context, title string) ([]entity.Series, error)
 }

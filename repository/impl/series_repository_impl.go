@@ -372,8 +372,23 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesBySeriesType(seriesType s
 	panic("implement me")
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (entity.Series, error) {
-	panic("implement me")
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(ctx context.Context, title string) ([]entity.Series, error) {
+	var seriesResult []entity.Series
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("title LIKE ?", "%"+title+"%").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return seriesResult, nil
+}
+
+func (seriesRepository *seriesRepositoryImpl) GetSeriesIdAndTitlesByTitle(ctx context.Context, title string) ([]entity.Series, error) {
+	var seriesResults []entity.Series
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("title LIKE ?", "%"+title+"%").Find(&seriesResults)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return seriesResults, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {

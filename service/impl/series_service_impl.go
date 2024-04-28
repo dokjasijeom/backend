@@ -129,3 +129,39 @@ func (seriesService *seriesServiceImpl) LikeSeries(ctx context.Context, userId u
 	}
 	return nil
 }
+
+// Get Series By Title
+func (seriesService *seriesServiceImpl) GetSeriesByTitle(ctx context.Context, title string) ([]entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetSeriesByTitle(ctx, title)
+	if err != nil {
+		return []entity.Series{}, nil
+	}
+	return result, nil
+}
+
+// Get Series Id And Title by Title
+func (seriesService *seriesServiceImpl) GetSeriesIdAndTitlesByTitle(ctx context.Context, title string) ([]entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetSeriesIdAndTitlesByTitle(ctx, title)
+	if err != nil {
+		return []entity.Series{}, nil
+	}
+
+	for i, _ := range result {
+		result[i].Id = 0
+		result[i].Thumbnail = ""
+		result[i].Description = ""
+		result[i].ISBN = ""
+		result[i].ECN = ""
+		result[i].SeriesType = ""
+		result[i].Authors = nil
+		result[i].Publishers = nil
+		result[i].Genres = nil
+		result[i].PublishDays = nil
+		result[i].Episodes = nil
+		result[i].IsComplete = false
+		result[i].LikeCount = 0
+		result[i].TotalEpisode = 0
+	}
+
+	return result, nil
+}
