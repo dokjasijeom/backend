@@ -286,7 +286,7 @@ func (seriesRepository *seriesRepositoryImpl) DeleteSeriesById(ctx context.Conte
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context, id uint) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").First(&seriesResult, id)
+	result := seriesRepository.DB.WithContext(ctx).Preload("SeriesProvider.Provider").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").First(&seriesResult, id)
 	if result.RowsAffected == 0 {
 		return entity.Series{}, nil
 	}
@@ -312,6 +312,12 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 		sa.Person.PersonType = sa.PersonType
 		seriesResult.Authors = append(seriesResult.Authors, sa.Person)
 	}
+	// 제공자 정보를 Providers 필드에 반영
+	seriesResult.Providers = make([]entity.Provider, 0)
+	for _, sp := range seriesResult.SeriesProvider {
+		sp.Provider.Link = sp.Link
+		seriesResult.Providers = append(seriesResult.Providers, sp.Provider)
+	}
 
 	return seriesResult, nil
 }
@@ -323,7 +329,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 
 	seriesRepository.DB.WithContext(ctx).Model(&entity.PublishDay{}).Where("day = ?", publishDay).First(&publishDayResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPublishDay{}).Where("publish_day_id = ?", publishDayResult.Id).Pluck("series_id", &seriesIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("Providers").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors").Preload("Episodes").Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors").Preload("Episodes").Find(&seriesResult)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -372,7 +378,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByTitle(title string) (en
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Providers").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("SeriesProvider.Provider").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
 	if result.Error != nil {
 		return entity.Series{}, nil
 	}
@@ -397,6 +403,12 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 	for _, sa := range seriesResult.SeriesAuthors {
 		sa.Person.PersonType = sa.PersonType
 		seriesResult.Authors = append(seriesResult.Authors, sa.Person)
+	}
+	// 제공자 정보를 Providers 필드에 반영
+	seriesResult.Providers = make([]entity.Provider, 0)
+	for _, sp := range seriesResult.SeriesProvider {
+		sp.Provider.Link = sp.Link
+		seriesResult.Providers = append(seriesResult.Providers, sp.Provider)
 	}
 
 	return seriesResult, nil
@@ -429,6 +441,12 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 		for _, sa := range seriesResult[i].SeriesAuthors {
 			sa.Person.PersonType = sa.PersonType
 			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		seriesResult[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range seriesResult[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			seriesResult[i].Providers = append(seriesResult[i].Providers, sp.Provider)
 		}
 	}
 

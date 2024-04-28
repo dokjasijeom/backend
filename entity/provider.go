@@ -13,6 +13,7 @@ type Provider struct {
 	Description    string           `gorm:"column:description;type:text;null" json:"description"`
 	HomepageUrl    string           `gorm:"column:homepage_url;type:varchar(255);null" json:"homepageUrl"`
 	ProviderSeries []SeriesProvider `json:"series,omitempty"` // many to many relationship
+	Link           string           `json:"link,omitempty"`
 	//Series      []Series       `gorm:"many2many:series_providers;" json:"series"` // many to many relationship
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
