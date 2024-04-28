@@ -103,12 +103,12 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 		}
 		log.Println(request.Providers)
 	}
-	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
-		for _, v := range providerIds {
-			u64, _ := strconv.ParseInt(v, 10, 0)
-			request.ProviderIds = append(request.ProviderIds, uint(u64))
-		}
-	}
+	//if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
+	//	for _, v := range providerIds {
+	//		u64, _ := strconv.ParseInt(v, 10, 0)
+	//		request.ProviderIds = append(request.ProviderIds, uint(u64))
+	//	}
+	//}
 	if publishDayIds := form.Value["publishDayIds"]; len(publishDayIds) > 0 {
 		for _, v := range publishDayIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
