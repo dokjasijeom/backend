@@ -73,19 +73,13 @@ func (episodeRepository *episodeRepositoryImpl) CreateBulkEpisode(ctx context.Co
 	for i := 1; i <= int(toEpisodeNumber); i++ {
 		episode := entity.Episode{
 			EpisodeNumber: uint(i),
+			Series:        []entity.Series{{Id: seriesId}},
 		}
 		episodes = append(episodes, episode)
 	}
 	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Create(&episodes)
 	if result.Error != nil {
 		return nil, result.Error
-	}
-
-	for i := 0; i < len(episodes); i++ {
-		err := episodeRepository.DB.WithContext(ctx).Model(&episodes[i]).Association("Series").Append(&entity.Series{Id: seriesId})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return episodes, nil
