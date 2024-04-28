@@ -8,5 +8,6 @@ import (
 func NewFiberConfiguration() fiber.Config {
 	return fiber.Config{
 		ErrorHandler: exception.ErrorHandler,
+		BodyLimit:    10 * 1024 * 1024,
 	}
 }
