@@ -32,6 +32,7 @@ type Series struct {
 	Providers      []Provider       `gorm:"-" json:"providers,omitempty"`
 	//Providers      []Provider       `gorm:"many2many:series_providers;" json:"providers"`   // many to many relationship
 	LikeCount    uint   `gorm:"column:like_count;type:int(11);not null;default:0;index" json:"likeCount,omitempty"`
+	ViewCount    uint   `gorm:"column:view_count;type:int(11);not null;default:0;index" json:"viewCount,omitempty"`
 	DisplayTags  string `gorm:"-" json:"displayTags,omitempty"`
 	TotalEpisode uint   `gorm:"-" json:"totalEpisode,omitempty"`
 	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`

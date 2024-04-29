@@ -8,14 +8,16 @@ import (
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
-func NewSeriesController(seriesService *service.SeriesService, userService *service.UserService, config configuration.Config) *SeriesController {
-	return &SeriesController{SeriesService: *seriesService, UserService: *userService, Config: config}
+func NewSeriesController(seriesService *service.SeriesService, seriesDailyViewService *service.SeriesDailyViewService, userService *service.UserService, config configuration.Config) *SeriesController {
+	return &SeriesController{SeriesService: *seriesService, SeriesDailyViewService: *seriesDailyViewService, UserService: *userService, Config: config}
 }
 
 type SeriesController struct {
 	service.SeriesService
+	service.SeriesDailyViewService
 	service.UserService
 	configuration.Config
 }
@@ -104,6 +106,9 @@ func (controller SeriesController) GetSeriesByHashId(ctx *fiber.Ctx) error {
 
 	result.Id = 0
 	result.Thumbnail = controller.Config.Get("CLOUDINARY_URL") + result.Thumbnail
+
+	now := time.Now()
+	err = controller.SeriesDailyViewService.UpsertSeriesDailyView(ctx.Context(), result.Id, now.Format("2006-01-02"))
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
