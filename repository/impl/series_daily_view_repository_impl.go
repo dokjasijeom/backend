@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
 )
@@ -18,11 +19,14 @@ type seriesDailyViewRepositoryImpl struct {
 func (repository *seriesDailyViewRepositoryImpl) UpsertSeriesDailyView(ctx context.Context, seriesId uint, currentDate string) error {
 	// if not exist series_id and view_date, insert new record
 	// if exist series_id and view_date, increase view_count
-	result := repository.DB.WithContext(ctx).Exec(`
-		INSERT INTO series_daily_views (series_id, view_date, view_count, created_at, updated_at)
-		VALUES (?, ?, 1, NOW(), NOW())
-		ON DUPLICATE KEY UPDATE view_count = view_count + 1, updated_at = NOW()
-	`, seriesId, currentDate)
+	var seriesDailyView entity.SeriesDailyView
+	result := repository.DB.WithContext(ctx).Model(&entity.SeriesDailyView{}).Where("series_id = ? AND view_date = ?", seriesId, currentDate).FirstOrCreate(&seriesDailyView)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	seriesDailyView.ViewCount++
+	result = repository.DB.WithContext(ctx).Save(&seriesDailyView)
 
 	if result.Error != nil {
 		return result.Error
