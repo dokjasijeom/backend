@@ -98,7 +98,7 @@ func (publisherRepository *publisherRepositoryImpl) UpdatePublisher(ctx context.
 }
 
 func (publisherRepository *publisherRepositoryImpl) DeletePublisherById(ctx context.Context, id uint) error {
-	result := publisherRepository.DB.WithContext(ctx).Model(&entity.Publisher{}).Delete(&entity.Publisher{}, id)
+	result := publisherRepository.DB.WithContext(ctx).Model(&entity.Publisher{}).Where("id = ?", id).Delete(&entity.Publisher{})
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return result.Error
