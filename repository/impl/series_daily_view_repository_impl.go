@@ -20,6 +20,9 @@ func (repository *seriesDailyViewRepositoryImpl) UpsertSeriesDailyView(ctx conte
 	// if not exist series_id and view_date, insert new record
 	// if exist series_id and view_date, increase view_count
 	var seriesDailyView entity.SeriesDailyView
+	seriesDailyView.SeriesId = seriesId
+	seriesDailyView.ViewDate = currentDate
+	seriesDailyView.ViewCount = 0
 	result := repository.DB.WithContext(ctx).Model(&entity.SeriesDailyView{}).Where("series_id = ? AND view_date = ?", seriesId, currentDate).FirstOrCreate(&seriesDailyView)
 	if result.Error != nil {
 		return result.Error
