@@ -5,6 +5,7 @@ import (
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
+	"time"
 )
 
 func NewSeriesDailyViewRepositoryImpl(DB *gorm.DB) repository.SeriesDailyViewRepository {
@@ -16,7 +17,7 @@ type seriesDailyViewRepositoryImpl struct {
 }
 
 // Upsert SeriesDailyView
-func (repository *seriesDailyViewRepositoryImpl) UpsertSeriesDailyView(ctx context.Context, seriesId uint, currentDate string) error {
+func (repository *seriesDailyViewRepositoryImpl) UpsertSeriesDailyView(ctx context.Context, seriesId uint, currentDate time.Time) error {
 	// if not exist series_id and view_date, insert new record
 	// if exist series_id and view_date, increase view_count
 	var seriesDailyView entity.SeriesDailyView

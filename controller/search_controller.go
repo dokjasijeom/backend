@@ -24,6 +24,14 @@ func (controller SearchController) Route(app fiber.Router) {
 
 func (controller SearchController) Autocomplete(ctx *fiber.Ctx) error {
 	query := ctx.Query("query")
+	if query == "" {
+		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+			"code":    fiber.StatusOK,
+			"message": "success",
+			"data":    []entity.Series{},
+		})
+	}
+
 	result, err := controller.SeriesService.GetSeriesIdAndTitlesByTitle(ctx.Context(), query)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -42,6 +50,14 @@ func (controller SearchController) Autocomplete(ctx *fiber.Ctx) error {
 
 func (controller SearchController) SearchSeries(ctx *fiber.Ctx) error {
 	query := ctx.Query("query")
+	if query == "" {
+		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+			"code":    fiber.StatusOK,
+			"message": "success",
+			"data":    []entity.Series{},
+		})
+	}
+
 	seriesResult, err := controller.SeriesService.GetSeriesByTitle(ctx.Context(), query)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -376,7 +376,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 	var seriesResult entity.Series
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("SeriesProvider.Provider").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
 	if result.Error != nil {
-		return entity.Series{}, nil
+		return entity.Series{}, result.Error
 	}
 
 	if seriesResult.SeriesType == "webnovel" {

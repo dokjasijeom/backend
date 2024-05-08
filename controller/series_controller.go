@@ -104,11 +104,12 @@ func (controller SeriesController) GetSeriesByHashId(ctx *fiber.Ctx) error {
 		})
 	}
 
+	now := time.Now()
+	currentDate, _ := time.Parse("2006-01-02", now.Format("2006-01-02"))
+	err = controller.SeriesDailyViewService.UpsertSeriesDailyView(ctx.Context(), result.Id, currentDate)
+
 	result.Id = 0
 	result.Thumbnail = controller.Config.Get("CLOUDINARY_URL") + result.Thumbnail
-
-	now := time.Now()
-	err = controller.SeriesDailyViewService.UpsertSeriesDailyView(ctx.Context(), result.Id, now.Format("2006-01-02"))
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
