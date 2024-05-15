@@ -70,14 +70,25 @@ func (episodeRepository *episodeRepositoryImpl) GetEpisodeById(ctx context.Conte
 // Create Bulk New Episode
 func (episodeRepository *episodeRepositoryImpl) CreateBulkEpisode(ctx context.Context, seriesId, toEpisodeNumber uint) ([]entity.Episode, error) {
 	var episodes []entity.Episode
-	for i := 1; i <= int(toEpisodeNumber); i++ {
+
+	startNumber := 1
+
+	var lastEpisode entity.Episode
+	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("series_id = ?", seriesId).Order("episode_number desc").First(&lastEpisode)
+
+	// lastEpisode가 존재하면 lastEpisode.EpisodeNumber + 1부터 toEpisodeNumber까지 생성
+	if lastEpisode.EpisodeNumber != 0 {
+		startNumber = int(lastEpisode.EpisodeNumber) + 1
+	}
+
+	for i := startNumber; i <= int(toEpisodeNumber); i++ {
 		episode := entity.Episode{
 			EpisodeNumber: uint(i),
 			Series:        []entity.Series{{Id: seriesId}},
 		}
 		episodes = append(episodes, episode)
 	}
-	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Create(&episodes)
+	result = episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Create(&episodes)
 	if result.Error != nil {
 		return nil, result.Error
 	}
