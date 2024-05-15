@@ -35,6 +35,10 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Find(&userResult)
 	err := result.Error
 
+	for i := range userResult.LikeSeries {
+		userResult.LikeSeries[i].Id = 0
+	}
+
 	return userResult, err
 }
 
