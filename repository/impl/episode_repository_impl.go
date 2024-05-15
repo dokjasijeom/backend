@@ -91,6 +91,13 @@ func (episodeRepository *episodeRepositoryImpl) CreateBulkEpisode(ctx context.Co
 		lastEpisode = currentSeries.Episodes[0]
 	}
 
+	if lastEpisode.EpisodeNumber == toEpisodeNumber {
+		currentSeries.TotalEpisode = toEpisodeNumber
+		result = episodeRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id = ?", seriesId).Updates(entity.Series{
+			TotalEpisode: toEpisodeNumber,
+		})
+	}
+
 	// 요청 받은 toEpisodeNumber가 이미 존재하는 Episode의 EpisodeNumber보다 작으면 에러 반환
 	if lastEpisode.EpisodeNumber >= toEpisodeNumber {
 		return nil, gorm.ErrRecordNotFound
@@ -108,7 +115,11 @@ func (episodeRepository *episodeRepositoryImpl) CreateBulkEpisode(ctx context.Co
 		}
 		episodes = append(episodes, episode)
 	}
+
 	result = episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Create(&episodes)
+	result = episodeRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id = ?", seriesId).Updates(entity.Series{
+		TotalEpisode: toEpisodeNumber,
+	})
 	if result.Error != nil {
 		return nil, result.Error
 	}

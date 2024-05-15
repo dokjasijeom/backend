@@ -283,8 +283,6 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 		seriesResult.DisplayTags += "#" + seriesResult.Genres[genreI].Name + " "
 	}
 
-	seriesResult.TotalEpisode = uint(len(seriesResult.Episodes))
-
 	// DisplayTags 마지막 공백 제거
 	seriesResult.DisplayTags = seriesResult.DisplayTags[:len(seriesResult.DisplayTags)-1]
 
