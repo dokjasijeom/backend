@@ -8,6 +8,7 @@ import (
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
 	"log"
+	"time"
 )
 
 func NewSeriesRepositoryImpl(DB *gorm.DB) repository.SeriesRepository {
@@ -328,6 +329,73 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
 		// DisplayTags 마지막 공백 제거
 		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
+
+		// 작가 유형 반영해서 Authors 필드에 반영
+		seriesResult[i].Authors = make([]entity.Person, 0)
+		for _, sa := range seriesResult[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		seriesResult[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range seriesResult[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			seriesResult[i].Providers = append(seriesResult[i].Providers, sp.Provider)
+		}
+	}
+
+	return seriesResult, nil
+}
+
+func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error) {
+	var seriesResult []entity.Series
+	var providerResult entity.Provider
+	var seriesIds []uint
+	var episodeIds []uint
+
+	// 오늘 날짜 가져오기
+	now := time.Now()
+	// 오늘 날짜에서 하루를 빼서 어제 날짜 가져오기
+	yesterday := now.AddDate(0, 0, -1)
+	// 어제 날짜의 시간을 0시 0분 0초로 맞추기
+	yesterday = time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, time.Local)
+
+	// episode 테이블에서 어제 날짜와 오늘 날짜의 데이터를 비교해서 새로운 에피소드가 있는 series id를 중복값 제거해서 가져온다.
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("created_at BETWEEN ? AND ?", yesterday.Format(time.DateTime), now.Format(time.DateTime)).Pluck("id", &episodeIds)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesEpisode{}).Where("episode_id in (?)", episodeIds).Distinct().Pluck("series_id", &seriesIds)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name = ?", provider).First(&providerResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("series_id in (?) and provider_id = ?", seriesIds, providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id in (?) and series_type = ?", seriesIds, seriesType).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Find(&seriesResult)
+
+	// series 결과 목록에서 Id 필드값을 제거
+	for i := range seriesResult {
+		seriesResult[i].Id = 0
+
+		if seriesResult[i].SeriesType == "webnovel" {
+			seriesResult[i].DisplayTags = "#웹소설 "
+		} else {
+			seriesResult[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range seriesResult[i].Genres {
+			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
+		}
+		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
+		// DisplayTags 마지막 공백 제거
+		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
+
+		// 작가 유형 반영해서 Authors 필드에 반영
+		seriesResult[i].Authors = make([]entity.Person, 0)
+		for _, sa := range seriesResult[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		seriesResult[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range seriesResult[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			seriesResult[i].Providers = append(seriesResult[i].Providers, sp.Provider)
+		}
 	}
 
 	return seriesResult, nil

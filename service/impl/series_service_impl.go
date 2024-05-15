@@ -121,6 +121,16 @@ func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx c
 	return result, nil
 }
 
+// Get New Episode Update Provider Series
+func (seriesService *seriesServiceImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetNewEpisodeUpdateProviderSeries(ctx, provider, seriesType)
+	if err != nil {
+		return []entity.Series{}, nil
+	}
+	return result, nil
+
+}
+
 // Like Series
 func (seriesService *seriesServiceImpl) LikeSeries(ctx context.Context, userId uint, seriesId uint) error {
 	result := seriesService.SeriesRepository.LikeSeries(ctx, userId, seriesId)

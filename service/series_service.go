@@ -21,6 +21,8 @@ type SeriesService interface {
 	GetAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get PublishDay And SeriesType
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
+	// Get New Episode Update Provider Series
+	GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error)
 	// Like Series
 	LikeSeries(ctx context.Context, userId uint, seriesId uint) error
 	// Get Series By Title

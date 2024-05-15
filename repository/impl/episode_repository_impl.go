@@ -70,11 +70,31 @@ func (episodeRepository *episodeRepositoryImpl) GetEpisodeById(ctx context.Conte
 // Create Bulk New Episode
 func (episodeRepository *episodeRepositoryImpl) CreateBulkEpisode(ctx context.Context, seriesId, toEpisodeNumber uint) ([]entity.Episode, error) {
 	var episodes []entity.Episode
+	var currentSeries entity.Series
 
 	startNumber := 1
 
 	var lastEpisode entity.Episode
-	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("series_id = ?", seriesId).Order("episode_number desc").First(&lastEpisode)
+	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id = ?", seriesId).Preload("Episodes", func(db *gorm.DB) *gorm.DB {
+		return db.Order("episode_number desc")
+	}).First(&currentSeries)
+
+	// seriesId에 해당하는 Series가 존재하지 않으면 에러 반환
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	// Series에 Episode가 존재하지 않으면 startNumber = 1
+	if len(currentSeries.Episodes) == 0 {
+		startNumber = 1
+	} else {
+		lastEpisode = currentSeries.Episodes[0]
+	}
+
+	// 요청 받은 toEpisodeNumber가 이미 존재하는 Episode의 EpisodeNumber보다 작으면 에러 반환
+	if lastEpisode.EpisodeNumber >= toEpisodeNumber {
+		return nil, gorm.ErrRecordNotFound
+	}
 
 	// lastEpisode가 존재하면 lastEpisode.EpisodeNumber + 1부터 toEpisodeNumber까지 생성
 	if lastEpisode.EpisodeNumber != 0 {

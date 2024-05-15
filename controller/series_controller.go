@@ -25,6 +25,7 @@ type SeriesController struct {
 func (controller SeriesController) Route(app fiber.Router) {
 	series := app.Group("/series")
 	series.Get("/", controller.GetAllSeries)
+	series.Get("/new", controller.GetNewEpisodeUpdateProviderSeries)
 	series.Get("/:hashId", controller.GetSeriesByHashId)
 	series.Post("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.LikeSeries)
 }
@@ -55,6 +56,64 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 				Data:    nil,
 			})
 		}
+	}
+
+	// result for and i want to change Thumbnail Variable value
+	for i, v := range result {
+		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
+		// series 결과 목록에서 Id 필드값을 제거
+		result[i].Id = 0
+
+		// authors for
+		for j, _ := range v.Authors {
+			result[i].Authors[j].Id = 0
+		}
+		// publishers for
+		for j, _ := range v.Publishers {
+			result[i].Publishers[j].Id = 0
+		}
+		// genres for
+		for j, _ := range v.Genres {
+			result[i].Genres[j].Id = 0
+		}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
+func (controller SeriesController) GetNewEpisodeUpdateProviderSeries(ctx *fiber.Ctx) error {
+	provider := ctx.Query("provider")
+	seriesType := ctx.Query("seriesType")
+
+	// validate provider
+	if provider == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid provider",
+			Data:    nil,
+		})
+	}
+
+	// validate seriesType
+	if seriesType == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid seriesType",
+			Data:    nil,
+		})
+	}
+
+	result, err := controller.SeriesService.GetNewEpisodeUpdateProviderSeries(ctx.Context(), provider, seriesType)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	// result for and i want to change Thumbnail Variable value
