@@ -3,9 +3,11 @@ package controller
 import (
 	"github.com/dokjasijeom/backend/common"
 	"github.com/dokjasijeom/backend/configuration"
+	"github.com/dokjasijeom/backend/middleware"
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func NewUserController(userService *service.UserService, config configuration.Config) *UserController {
@@ -20,6 +22,7 @@ type UserController struct {
 func (controller UserController) Route(app *fiber.App) {
 	app.Post("/user/auth", controller.AuthenticateUser)
 	app.Post("/users", controller.CreateUser)
+	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 }
 
 // Authenticate user
@@ -121,5 +124,27 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 		Code:    fiber.StatusCreated,
 		Message: "success",
 		Data:    resultWithToken,
+	})
+}
+
+// Get user
+// Path: GET /user
+// @Description Get user
+// @Summary Get user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} model.GeneralResponse
+// @Router /user [get]
+func (controller UserController) GetUser(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	result := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    result,
 	})
 }
