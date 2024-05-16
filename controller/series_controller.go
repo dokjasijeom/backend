@@ -28,6 +28,7 @@ func (controller SeriesController) Route(app fiber.Router) {
 	series.Get("/new", controller.GetNewEpisodeUpdateProviderSeries)
 	series.Get("/:hashId", controller.GetSeriesByHashId)
 	series.Post("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.LikeSeries)
+	series.Delete("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.UnlikeSeries)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
@@ -236,7 +237,66 @@ func (controller SeriesController) LikeSeries(ctx *fiber.Ctx) error {
 		})
 	}
 
+	hasLike, err := controller.SeriesService.HasLikeSeries(ctx.Context(), userEntity.Id, series.Id)
+	if hasLike == true {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "User has already liked this series",
+			Data:    nil,
+		})
+	}
+
 	err = controller.SeriesService.LikeSeries(ctx.Context(), userEntity.Id, series.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+// unlike series
+func (controller SeriesController) UnlikeSeries(ctx *fiber.Ctx) error {
+	hashId := ctx.Params("hashId")
+	if hashId == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid hashId",
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	series, err := controller.SeriesService.GetSeriesByHashId(ctx.Context(), hashId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	hasLike, err := controller.SeriesService.HasLikeSeries(ctx.Context(), userEntity.Id, series.Id)
+	if hasLike == false {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "User has not liked this series",
+			Data:    nil,
+		})
+	}
+
+	err = controller.SeriesService.UnlikeSeries(ctx.Context(), userEntity.Id, series.Id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    fiber.StatusInternalServerError,

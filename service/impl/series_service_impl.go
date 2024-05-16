@@ -131,9 +131,27 @@ func (seriesService *seriesServiceImpl) GetNewEpisodeUpdateProviderSeries(ctx co
 
 }
 
+// Has Like Series
+func (seriesService *seriesServiceImpl) HasLikeSeries(ctx context.Context, userId uint, seriesId uint) (bool, error) {
+	result, err := seriesService.SeriesRepository.HasLikeSeries(ctx, userId, seriesId)
+	if err != nil {
+		return false, nil
+	}
+	return result, nil
+}
+
 // Like Series
 func (seriesService *seriesServiceImpl) LikeSeries(ctx context.Context, userId uint, seriesId uint) error {
 	result := seriesService.SeriesRepository.LikeSeries(ctx, userId, seriesId)
+	if result != nil {
+		return result
+	}
+	return nil
+}
+
+// Unlike Series
+func (seriesService *seriesServiceImpl) UnlikeSeries(ctx context.Context, userId uint, seriesId uint) error {
+	result := seriesService.SeriesRepository.UnlikeSeries(ctx, userId, seriesId)
 	if result != nil {
 		return result
 	}

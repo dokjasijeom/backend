@@ -515,9 +515,30 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 	return seriesResult, nil
 }
 
+// Has Like Series
+func (seriesRepository *seriesRepositoryImpl) HasLikeSeries(ctx context.Context, userId uint, seriesId uint) (bool, error) {
+	var userLikeSeries entity.UserLikeSeries
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.UserLikeSeries{}).Where("user_id = ? and series_id = ?", userId, seriesId).First(&userLikeSeries)
+	if result.RowsAffected == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Like Series
 func (seriesRepository *seriesRepositoryImpl) LikeSeries(ctx context.Context, userId uint, seriesId uint) error {
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.UserLikeSeries{}).Create(&entity.UserLikeSeries{UserId: userId, SeriesId: seriesId})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+// Unlike Series
+func (seriesRepository *seriesRepositoryImpl) UnlikeSeries(ctx context.Context, userId uint, seriesId uint) error {
+	var userLikeSeries entity.UserLikeSeries
+	seriesRepository.DB.WithContext(ctx).Model(&entity.UserLikeSeries{}).Where("user_id = ? and series_id = ?", userId, seriesId).First(&userLikeSeries)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.UserLikeSeries{}).Delete(&userLikeSeries)
 	if result.Error != nil {
 		return result.Error
 	}

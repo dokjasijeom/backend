@@ -1,6 +1,8 @@
 package entity
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type UserLikeSeries struct {
 	UserId   uint `gorm:"primaryKey;column:user_id;type:int(11);not null"`
@@ -9,10 +11,10 @@ type UserLikeSeries struct {
 
 func (uls *UserLikeSeries) AfterCreate(tx *gorm.DB) (err error) {
 	var ulsc UserLikeSeriesCount
-	tx.Model(&ulsc).Where("series_id = ?", uls.SeriesId).First(&ulsc)
+	tx.Model(&UserLikeSeriesCount{}).Where("series_id = ?", uls.SeriesId).First(&ulsc)
 	if ulsc != (UserLikeSeriesCount{}) {
 		ulsc.Count++
-		tx.Save(&ulsc)
+		tx.Updates(&ulsc)
 	} else {
 		ulsc.SeriesId = uls.SeriesId
 		ulsc.Count = 1
@@ -20,25 +22,25 @@ func (uls *UserLikeSeries) AfterCreate(tx *gorm.DB) (err error) {
 	}
 
 	var series Series
-	tx.Model(&series).Where("id = ?", uls.SeriesId).First(&series)
+	tx.Model(&Series{}).Where("id = ?", uls.SeriesId).First(&series)
 	series.LikeCount++
-	tx.Save(&series)
+	tx.Updates(&series)
 
 	return nil
 }
 
-func (uls *UserLikeSeries) AfterDelete(tx *gorm.DB) (err error) {
+func (uls *UserLikeSeries) BeforeDelete(tx *gorm.DB) (err error) {
 	var ulsc UserLikeSeriesCount
-	tx.Model(&ulsc).Where("series_id = ?", uls.SeriesId).First(&ulsc)
+	tx.Model(&UserLikeSeriesCount{}).Where("series_id = ?", uls.SeriesId).First(&ulsc)
 	if ulsc != (UserLikeSeriesCount{}) {
 		ulsc.Count--
-		tx.Save(&ulsc)
+		tx.Updates(&ulsc)
 	}
 
 	var series Series
-	tx.Model(&series).Where("id = ?", uls.SeriesId).First(&series)
-	series.LikeCount--
-	tx.Save(&series)
+	tx.Model(&Series{}).Where("id = ?", uls.SeriesId).First(&series)
+	series.LikeCount = series.LikeCount - 1
+	tx.Updates(&series)
 
 	return nil
 }
