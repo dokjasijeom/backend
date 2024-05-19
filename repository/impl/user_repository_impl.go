@@ -38,6 +38,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 	for i := range userResult.LikeSeries {
 		userResult.LikeSeries[i].Id = 0
 	}
+	userResult.LikeSeriesCount = uint(len(userResult.LikeSeries))
 
 	return userResult, err
 }
