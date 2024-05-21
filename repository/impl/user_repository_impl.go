@@ -32,7 +32,7 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("RecordSeries.Series").Find(&userResult)
 	err := result.Error
 
 	for i := range userResult.LikeSeries {

@@ -35,6 +35,8 @@ func main() {
 	personRepository := repository.NewPersonRepositoryImpl(database)
 	episodeRepository := repository.NewEpisodeRepositoryImpl(database)
 	seriesDailyViewRepository := repository.NewSeriesDailyViewRepositoryImpl(database)
+	userRecordSeriesRepository := repository.NewUserRecordSeriesRepositoryImpl(database)
+	userRecordSeriesEpisodeRepository := repository.NewUserRecordSeriesEpisodeRepositoryImpl(database)
 
 	// service
 	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
@@ -47,12 +49,14 @@ func main() {
 	personService := service.NewPersonServiceImpl(&personRepository)
 	episodeService := service.NewEpisodeServiceImpl(&episodeRepository)
 	seriesDailyViewService := service.NewSeriesDailyViewServiceImpl(&seriesDailyViewRepository)
+	userRecordSeriesService := service.NewUserRecordSeriesServiceImpl(&userRecordSeriesRepository)
+	userRecordSeriesEpisodeService := service.NewUserRecordSeriesEpisodeServiceImpl(&userRecordSeriesEpisodeRepository)
 
 	// controller
 	userController := controller.NewUserController(&userService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
-	seriesController := controller.NewSeriesController(&seriesService, &seriesDailyViewService, &userService, config)
+	seriesController := controller.NewSeriesController(&seriesService, &seriesDailyViewService, &userService, &userRecordSeriesService, &userRecordSeriesEpisodeService, config)
 	searchController := controller.NewSearchController(&seriesService, config)
 
 	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, &episodeService, config)

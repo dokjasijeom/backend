@@ -11,14 +11,16 @@ import (
 	"time"
 )
 
-func NewSeriesController(seriesService *service.SeriesService, seriesDailyViewService *service.SeriesDailyViewService, userService *service.UserService, config configuration.Config) *SeriesController {
-	return &SeriesController{SeriesService: *seriesService, SeriesDailyViewService: *seriesDailyViewService, UserService: *userService, Config: config}
+func NewSeriesController(seriesService *service.SeriesService, seriesDailyViewService *service.SeriesDailyViewService, userService *service.UserService, userRecordSeriesService *service.UserRecordSeriesService, userRecordSeriesEpisodeService *service.UserRecordSeriesEpisodeService, config configuration.Config) *SeriesController {
+	return &SeriesController{SeriesService: *seriesService, SeriesDailyViewService: *seriesDailyViewService, UserService: *userService, UserRecordSeriesService: *userRecordSeriesService, UserRecordSeriesEpisodeService: *userRecordSeriesEpisodeService, Config: config}
 }
 
 type SeriesController struct {
 	service.SeriesService
 	service.SeriesDailyViewService
 	service.UserService
+	service.UserRecordSeriesService
+	service.UserRecordSeriesEpisodeService
 	configuration.Config
 }
 
@@ -29,6 +31,10 @@ func (controller SeriesController) Route(app fiber.Router) {
 	series.Get("/:hashId", controller.GetSeriesByHashId)
 	series.Post("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.LikeSeries)
 	series.Delete("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.UnlikeSeries)
+	series.Post("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeries)
+	series.Delete("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeries)
+	series.Post("/empty/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordEmptySeries)
+	series.Delete("/empty/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordEmptySeries)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
@@ -307,6 +313,191 @@ func (controller SeriesController) UnlikeSeries(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
+		Message: "Success",
+		Data:    nil,
+	})
+}
+
+// create user record series
+func (controller SeriesController) CreateUserRecordSeries(ctx *fiber.Ctx) error {
+	hashId := ctx.Params("hashId")
+	if hashId == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid hashId",
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	series, err := controller.SeriesService.GetSeriesByHashId(ctx.Context(), hashId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	userRecordSeries := entity.UserRecordSeries{
+		UserId:       userEntity.Id,
+		SeriesId:     series.Id,
+		TotalEpisode: series.TotalEpisode,
+	}
+
+	record, err := controller.UserRecordSeriesService.CreateUserRecordSeries(ctx.Context(), userRecordSeries)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    record,
+	})
+}
+
+// delete user record series
+func (controller SeriesController) DeleteUserRecordSeries(ctx *fiber.Ctx) error {
+	hashId := ctx.Params("hashId")
+	if hashId == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid hashId",
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	series, err := controller.SeriesService.GetSeriesByHashId(ctx.Context(), hashId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, series.Id)
+
+	err = controller.UserRecordSeriesService.DeleteUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, series.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+	err = controller.UserRecordSeriesEpisodeService.DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx.Context(), recordEntity.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
+		Message: "Success",
+		Data:    nil,
+	})
+
+}
+
+// create user record empty series
+func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	var request = model.UserRecordSeriesEmptyModel{}
+	err := ctx.BodyParser(&request)
+
+	userRecordSeries := entity.UserRecordSeries{
+		UserId:       userEntity.Id,
+		SeriesId:     0,
+		Title:        request.Title,
+		Author:       request.Author,
+		Genre:        request.Genre,
+		TotalEpisode: request.TotalEpisode,
+	}
+
+	record, err := controller.UserRecordSeriesService.CreateUserRecordSeries(ctx.Context(), userRecordSeries)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+		Code:    fiber.StatusCreated,
+		Message: "Success",
+		Data:    record,
+	})
+}
+
+// delete user record empty series
+func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+
+	var request = model.UserRecordSeriesEmptyModel{}
+	err := ctx.BodyParser(&request)
+
+	if request.Id == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid id",
+			Data:    nil,
+		})
+	}
+
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, request.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	err = controller.UserRecordSeriesService.DeleteUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+	err = controller.UserRecordSeriesEpisodeService.DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx.Context(), recordEntity.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
 		Message: "Success",
 		Data:    nil,
 	})
