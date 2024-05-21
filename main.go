@@ -53,7 +53,7 @@ func main() {
 	userRecordSeriesEpisodeService := service.NewUserRecordSeriesEpisodeServiceImpl(&userRecordSeriesEpisodeRepository)
 
 	// controller
-	userController := controller.NewUserController(&userService, config)
+	userController := controller.NewUserController(&userService, &episodeService, &providerService, &userRecordSeriesService, &userRecordSeriesEpisodeService, config)
 	//roleController := controller.NewRoleController(&roleService, config)
 	testController := controller.NewTestController(config)
 	seriesController := controller.NewSeriesController(&seriesService, &seriesDailyViewService, &userService, &userRecordSeriesService, &userRecordSeriesEpisodeService, config)

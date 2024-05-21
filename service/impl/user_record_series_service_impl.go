@@ -15,6 +15,11 @@ type userRecordSeriesServiceImpl struct {
 	repository.UserRecordSeriesRepository
 }
 
+// Get user record series by id
+func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserRecordSeriesById(ctx context.Context, id uint) (entity.UserRecordSeries, error) {
+	return userRecordSeriesService.UserRecordSeriesRepository.GetUserRecordSeriesById(ctx, id)
+}
+
 // Get user record series by user id
 func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserRecordSeriesByUserId(ctx context.Context, userId uint) ([]entity.UserRecordSeries, error) {
 	return userRecordSeriesService.UserRecordSeriesRepository.GetUserRecordSeriesByUserId(ctx, userId)
@@ -23,6 +28,11 @@ func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserRecordSeriesB
 // Get user record series by user id and series id
 func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserRecordSeriesByUserIdAndSeriesId(ctx context.Context, userId, seriesId uint) (entity.UserRecordSeries, error) {
 	return userRecordSeriesService.UserRecordSeriesRepository.GetUserRecordSeriesByUserIdAndSeriesId(ctx, userId, seriesId)
+}
+
+// Get user record series by user id and user record series id
+func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserRecordSeriesByUserIdAndId(ctx context.Context, userId, id uint) (entity.UserRecordSeries, error) {
+	return userRecordSeriesService.UserRecordSeriesRepository.GetUserRecordSeriesByUserIdAndId(ctx, userId, id)
 }
 
 // Create user record series

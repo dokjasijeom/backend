@@ -23,6 +23,10 @@ func (episodeService *episodeServiceImpl) GetAllEpisode(ctx context.Context) ([]
 	return episodeService.EpisodeRepository.GetAllEpisode(ctx)
 }
 
+func (episodeService *episodeServiceImpl) GetEpisodesBySeriesId(ctx context.Context, seriesId uint) ([]entity.Episode, error) {
+	return episodeService.EpisodeRepository.GetEpisodesBySeriesId(ctx, seriesId)
+}
+
 func (episodeService *episodeServiceImpl) DeleteEpisode(ctx context.Context, episodeId uint) error {
 	return episodeService.EpisodeRepository.DeleteEpisode(ctx, episodeId)
 }

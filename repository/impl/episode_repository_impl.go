@@ -37,6 +37,16 @@ func (episodeRepository *episodeRepositoryImpl) GetAllEpisode(ctx context.Contex
 	return episodeResult, nil
 }
 
+// Get Episodes By Series Id
+func (episodeRepository *episodeRepositoryImpl) GetEpisodesBySeriesId(ctx context.Context, seriesId uint) ([]entity.Episode, error) {
+	var episodeResult []entity.Episode
+	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("series_id = ?", seriesId).Find(&episodeResult)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return episodeResult, nil
+}
+
 // Delete Episode
 func (episodeRepository *episodeRepositoryImpl) DeleteEpisode(ctx context.Context, episodeId uint) error {
 	result := episodeRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("id = ?", episodeId).Delete(&entity.Episode{})

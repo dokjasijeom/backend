@@ -15,6 +15,13 @@ type userRecordSeriesRepositoryImpl struct {
 	*gorm.DB
 }
 
+// Get user record series by id
+func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordSeriesById(ctx context.Context, id uint) (entity.UserRecordSeries, error) {
+	var userRecordSeries entity.UserRecordSeries
+	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("id = ?", id).Find(&userRecordSeries)
+	return userRecordSeries, result.Error
+}
+
 // Get user record series by user id
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordSeriesByUserId(ctx context.Context, userId uint) ([]entity.UserRecordSeries, error) {
 	var userRecordSeries []entity.UserRecordSeries
@@ -26,6 +33,13 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordS
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordSeriesByUserIdAndSeriesId(ctx context.Context, userId, seriesId uint) (entity.UserRecordSeries, error) {
 	var userRecordSeries entity.UserRecordSeries
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND series_id = ?", userId, seriesId).First(&userRecordSeries)
+	return userRecordSeries, result.Error
+}
+
+// Get user record series by user id and user record series id
+func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordSeriesByUserIdAndId(ctx context.Context, userId, id uint) (entity.UserRecordSeries, error) {
+	var userRecordSeries entity.UserRecordSeries
+	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND id = ?", userId, id).First(&userRecordSeries)
 	return userRecordSeries, result.Error
 }
 

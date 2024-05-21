@@ -10,6 +10,8 @@ type EpisodeRepository interface {
 	CreateEpisode(ctx context.Context, episodeNumber uint) (entity.Episode, error)
 	// Get All Episode
 	GetAllEpisode(ctx context.Context) ([]entity.Episode, error)
+	// Get Episodes By Series Id
+	GetEpisodesBySeriesId(ctx context.Context, seriesId uint) ([]entity.Episode, error)
 	// Delete Episode
 	DeleteEpisode(ctx context.Context, episodeId uint) error
 	// Update Episode
