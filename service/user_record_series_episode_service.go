@@ -16,6 +16,8 @@ type UserRecordSeriesEpisodeService interface {
 	UpdateUserRecordSeriesEpisodeById(ctx context.Context, id uint, userRecordSeriesEpisode entity.UserRecordSeriesEpisode) (entity.UserRecordSeriesEpisode, error)
 	// Delete user record series episode by id
 	DeleteUserRecordSeriesEpisodeById(ctx context.Context, id uint) error
+	// Delete user record series episode by user record series episode ids
+	DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx context.Context, userRecordSeriesEpisodeIds []uint) error
 	// Delete user record series episode by user record series id
 	DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx context.Context, userRecordSeriesId uint) error
 }

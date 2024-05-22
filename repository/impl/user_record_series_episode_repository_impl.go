@@ -53,6 +53,19 @@ func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) 
 	return result.Error
 }
 
+// Delete user record series episode by user record series episode ids
+func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx context.Context, userRecordSeriesEpisodeIds []uint) error {
+	for _, userRecordSeriesEpisodeId := range userRecordSeriesEpisodeIds {
+		var userRecordSeriesEpisode entity.UserRecordSeriesEpisode
+		result := userRecordSeriesEpisodeRepository.DB.WithContext(ctx).Model(&entity.UserRecordSeriesEpisode{}).Where("id = ?", userRecordSeriesEpisodeId).First(&userRecordSeriesEpisode)
+		result = userRecordSeriesEpisodeRepository.DB.WithContext(ctx).Model(&entity.UserRecordSeriesEpisode{}).Delete(&userRecordSeriesEpisode)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+	return nil
+}
+
 // Delete user record series episode by user record series id
 func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx context.Context, userRecordSeriesId uint) error {
 	result := userRecordSeriesEpisodeRepository.DB.WithContext(ctx).Where("user_record_series_id = ?", userRecordSeriesId).Delete(&entity.UserRecordSeriesEpisode{})

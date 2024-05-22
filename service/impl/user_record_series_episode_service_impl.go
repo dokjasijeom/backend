@@ -65,6 +65,11 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Delete
 	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.DeleteUserRecordSeriesEpisodeById(ctx, id)
 }
 
+// Delete user record series episode by user record series episode ids
+func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx context.Context, userRecordSeriesEpisodeIds []uint) error {
+	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx, userRecordSeriesEpisodeIds)
+}
+
 // Delete user record series episode by user record series id
 func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx context.Context, userRecordSeriesId uint) error {
 	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx, userRecordSeriesId)

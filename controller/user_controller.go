@@ -12,12 +12,13 @@ import (
 	"github.com/samber/lo"
 )
 
-func NewUserController(userService *service.UserService, episodeService *service.EpisodeService, providerService *service.ProviderService, userRecordSeriesService *service.UserRecordSeriesService, userRecordSeriesEpisodeService *service.UserRecordSeriesEpisodeService, config configuration.Config) *UserController {
-	return &UserController{UserService: *userService, EpisodeService: *episodeService, ProviderService: *providerService, UserRecordSeriesService: *userRecordSeriesService, UserRecordSeriesEpisodeService: *userRecordSeriesEpisodeService, Config: config}
+func NewUserController(userService *service.UserService, seriesService *service.SeriesService, episodeService *service.EpisodeService, providerService *service.ProviderService, userRecordSeriesService *service.UserRecordSeriesService, userRecordSeriesEpisodeService *service.UserRecordSeriesEpisodeService, config configuration.Config) *UserController {
+	return &UserController{UserService: *userService, SeriesService: *seriesService, EpisodeService: *episodeService, ProviderService: *providerService, UserRecordSeriesService: *userRecordSeriesService, UserRecordSeriesEpisodeService: *userRecordSeriesEpisodeService, Config: config}
 }
 
 type UserController struct {
 	service.UserService
+	service.SeriesService
 	service.EpisodeService
 	service.ProviderService
 	service.UserRecordSeriesService
@@ -30,6 +31,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/users", controller.CreateUser)
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
+	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 }
 
 // Authenticate user
@@ -168,17 +170,17 @@ func (controller UserController) GetUser(ctx *fiber.Ctx) error {
 // @Success 201 {object} model.GeneralResponse
 // @Router /user/series/record [post]
 func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	userEmail := claims["email"].(string)
-
-	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
-
 	var request model.UserRecordSeriesEpisodeRequestModel
 	err := ctx.BodyParser(&request)
 	if err != nil {
 		return err
 	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
 
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.UserRecordSeriesId)
 	if err != nil {
@@ -196,9 +198,11 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 		isBulkCreate = true
 	}
 
+	seriesEntity, err := controller.SeriesService.GetSeriesById(ctx.Context(), recordEntity.SeriesId)
+
 	var seriesEpisodes []entity.Episode
 	// get episodes by series id
-	seriesEpisodes, _ = controller.EpisodeService.GetEpisodesBySeriesId(ctx.Context(), recordEntity.SeriesId)
+	seriesEpisodes = seriesEntity.Episodes
 
 	if isBulkCreate {
 		// 내 서재에 등록한 작품에 다중 회차를 기록할 때
@@ -250,6 +254,55 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    nil,
+	})
+}
+
+// Delete user record series episode
+// Path: DELETE /user/series/record
+// @Description Delete user record series episode
+// @Summary Delete user record series episode
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body UserRecordSeriesEpisodeDeleteRequestModel true "Request Body"
+// @Success 204 {object} model.GeneralResponse
+// @Router /user/series/record [delete]
+func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) error {
+	var request model.UserRecordSeriesEpisodeDeleteRequestModel
+	err := ctx.BodyParser(&request)
+	if err != nil {
+		return err
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.UserRecordSeriesId)
+	if err != nil {
+		return err
+	}
+
+	if recordEntity.Id == 0 {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "record not found",
+			Data:    nil,
+		})
+	}
+
+	// delete user record series episode
+	err = controller.UserRecordSeriesEpisodeService.DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx.Context(), request.RecordIds)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
 		Message: "success",
 		Data:    nil,
 	})

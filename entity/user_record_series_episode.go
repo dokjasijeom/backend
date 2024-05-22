@@ -2,6 +2,7 @@ package entity
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
@@ -18,4 +19,33 @@ type UserRecordSeriesEpisode struct {
 	ProviderName       string           `gorm:"column:provider_name;type:varchar(255);null" json:"providerName,omitempty"`
 	CreatedAt          time.Time        `json:"-"`
 	DeletedAt          gorm.DeletedAt   `json:"-"`
+}
+
+// AfterCreate
+func (userRecordSeriesEpisode *UserRecordSeriesEpisode) AfterCreate(tx *gorm.DB) (err error) {
+	var urs UserRecordSeries
+	tx.Model(&UserRecordSeries{}).First(&urs, userRecordSeriesEpisode.UserRecordSeriesId)
+	urs.RecordEpisodeCount = urs.RecordEpisodeCount + 1
+	tx.Updates(&urs)
+
+	return nil
+}
+
+// BeforeDelete
+func (userRecordSeriesEpisode *UserRecordSeriesEpisode) BeforeDelete(tx *gorm.DB) (err error) {
+	log.Println(userRecordSeriesEpisode)
+	var urs UserRecordSeries
+	tx.Model(&UserRecordSeries{}).Where("id = ?", userRecordSeriesEpisode.UserRecordSeriesId).First(&urs)
+	log.Println(urs)
+	updateRecord := make(map[string]interface{})
+	updateRecord["record_episode_count"] = urs.RecordEpisodeCount - 1
+	if urs.RecordEpisodeCount-1 == 0 {
+		log.Println("0일 때")
+		tx.Model(&urs).Updates(updateRecord)
+	} else {
+		log.Println("0이 아닐 때")
+		tx.Updates(&urs)
+	}
+
+	return nil
 }

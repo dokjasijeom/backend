@@ -14,10 +14,12 @@ type UserRecordSeriesEpisodeRepository interface {
 	CreateUserRecordSeriesEpisode(ctx context.Context, userRecordSeriesEpisode entity.UserRecordSeriesEpisode) (entity.UserRecordSeriesEpisode, error)
 	// Create bulk user record series episode
 	CreateBulkUserRecordSeriesEpisode(ctx context.Context, userRecordSeriesEpisodes []entity.UserRecordSeriesEpisode) ([]entity.UserRecordSeriesEpisode, error)
-	// Update user record series episode by user id and id
+	// Update user record series episode by id
 	UpdateUserRecordSeriesEpisodeById(ctx context.Context, id uint, userRecordSeriesEpisode entity.UserRecordSeriesEpisode) (entity.UserRecordSeriesEpisode, error)
-	// Delete user record series episode by user id and id
+	// Delete user record series episode by id
 	DeleteUserRecordSeriesEpisodeById(ctx context.Context, id uint) error
+	// Delete user record series episode by user record series episode ids
+	DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx context.Context, userRecordSeriesEpisodeIds []uint) error
 	// Delete user record series episode by user record series id
 	DeleteUserRecordSeriesEpisodeByUserRecordSeriesId(ctx context.Context, userRecordSeriesId uint) error
 }
