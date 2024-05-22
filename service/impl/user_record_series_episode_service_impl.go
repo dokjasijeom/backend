@@ -5,6 +5,7 @@ import (
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"github.com/dokjasijeom/backend/service"
+	"github.com/samber/lo"
 )
 
 func NewUserRecordSeriesEpisodeServiceImpl(userRecordSeriesEpisodeRepository *repository.UserRecordSeriesEpisodeRepository) service.UserRecordSeriesEpisodeService {
@@ -27,7 +28,31 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Create
 
 // Create bulk user record series episode
 func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) CreateBulkUserRecordSeriesEpisode(ctx context.Context, userRecordSeriesEpisodes []entity.UserRecordSeriesEpisode) ([]entity.UserRecordSeriesEpisode, error) {
-	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.CreateBulkUserRecordSeriesEpisode(ctx, userRecordSeriesEpisodes)
+	currentHasUserRecordSeriesEpisodes, err := userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.GetUserRecordSeriesEpisodeByUserRecordSeriesId(ctx, userRecordSeriesEpisodes[0].UserRecordSeriesId)
+	if err != nil {
+		return nil, err
+	}
+
+	clonedUserRecordSeriesEpisodes := userRecordSeriesEpisodes
+	// 만약 다중 회차를 기록하려는 중 이미 DB에 기록된 회차가 있다면 해당 회차를 제외한다.
+	if len(currentHasUserRecordSeriesEpisodes) > 0 {
+		// for문 반복을 통해 존재하는지 체크
+		for _, userRecordSeriesEpisode := range userRecordSeriesEpisodes {
+			_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+				return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
+			})
+			_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+				return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
+			})
+
+			if ok && isFind {
+				// 존재한다면 해당 회차를 제외한다.
+				clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+			}
+		}
+	}
+
+	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.CreateBulkUserRecordSeriesEpisode(ctx, clonedUserRecordSeriesEpisodes)
 }
 
 // Update user record series episode by id

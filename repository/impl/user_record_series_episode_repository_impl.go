@@ -22,6 +22,13 @@ func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) 
 	return userRecordSeriesEpisode, result.Error
 }
 
+// Get user record series episode by user record series id
+func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) GetUserRecordSeriesEpisodeByUserRecordSeriesId(ctx context.Context, userRecordSeriesId uint) ([]entity.UserRecordSeriesEpisode, error) {
+	var userRecordSeriesEpisodes []entity.UserRecordSeriesEpisode
+	result := userRecordSeriesEpisodeRepository.DB.WithContext(ctx).Where("user_record_series_id = ?", userRecordSeriesId).Find(&userRecordSeriesEpisodes)
+	return userRecordSeriesEpisodes, result.Error
+}
+
 // Create user record series episode
 func (userRecordSeriesEpisodeRepository *userRecordSeriesEpisodeRepositoryImpl) CreateUserRecordSeriesEpisode(ctx context.Context, userRecordSeriesEpisode entity.UserRecordSeriesEpisode) (entity.UserRecordSeriesEpisode, error) {
 	result := userRecordSeriesEpisodeRepository.DB.WithContext(ctx).Create(&userRecordSeriesEpisode)
