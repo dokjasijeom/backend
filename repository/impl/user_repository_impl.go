@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dokjasijeom/backend/common"
+	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
@@ -32,11 +33,56 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("RecordSeries.Series").Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.Episodes").Preload("RecordSeries.Series").Find(&userResult)
 	err := result.Error
+
+	config := configuration.New()
 
 	for i := range userResult.LikeSeries {
 		userResult.LikeSeries[i].Id = 0
+
+		userResult.LikeSeries[i].Id = 0
+
+		if userResult.LikeSeries[i].SeriesType == "webnovel" {
+			userResult.LikeSeries[i].DisplayTags = "#웹소설 "
+		} else {
+			userResult.LikeSeries[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range userResult.LikeSeries[i].Genres {
+			userResult.LikeSeries[i].DisplayTags += "#" + userResult.LikeSeries[i].Genres[genreI].Name + " "
+		}
+		userResult.LikeSeries[i].TotalEpisode = uint(len(userResult.LikeSeries[i].Episodes))
+		userResult.LikeSeries[i].DisplayTags = userResult.LikeSeries[i].DisplayTags[:len(userResult.LikeSeries[i].DisplayTags)-1]
+
+		// 작가 유형 반영해서 Authors 필드에 반영
+		userResult.LikeSeries[i].Authors = make([]entity.Person, 0)
+		for _, sa := range userResult.LikeSeries[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			userResult.LikeSeries[i].Authors = append(userResult.LikeSeries[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		userResult.LikeSeries[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range userResult.LikeSeries[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			userResult.LikeSeries[i].Providers = append(userResult.LikeSeries[i].Providers, sp.Provider)
+		}
+
+		// publishDays remove id, Displayorder
+		for j, _ := range userResult.LikeSeries[i].PublishDays {
+			userResult.LikeSeries[i].PublishDays[j].Id = 0
+			userResult.LikeSeries[i].PublishDays[j].DisplayOrder = 0
+		}
+		// publishers remove field id, description, homepageurl, series
+		for j, _ := range userResult.LikeSeries[i].Publishers {
+			userResult.LikeSeries[i].Publishers[j].Id = 0
+			userResult.LikeSeries[i].Publishers[j].Description = ""
+			userResult.LikeSeries[i].Publishers[j].HomepageUrl = ""
+			userResult.LikeSeries[i].Publishers[j].Series = nil
+		}
+
+		userResult.LikeSeries[i].Thumbnail = config.Get("CLOUDINARY_URL") + userResult.LikeSeries[i].Thumbnail
+
 	}
 	userResult.LikeSeriesCount = uint(len(userResult.LikeSeries))
 
