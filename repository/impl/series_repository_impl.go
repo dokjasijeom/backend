@@ -354,7 +354,8 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	// 오늘 날짜 가져오기
 	now := time.Now()
 	// 오늘 날짜에서 하루를 빼서 어제 날짜 가져오기
-	yesterday := now.AddDate(0, 0, -1)
+	// 임시로 -30일로 설정
+	yesterday := now.AddDate(0, 0, -30)
 	// 어제 날짜의 시간을 0시 0분 0초로 맞추기
 	yesterday = time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, time.Local)
 
