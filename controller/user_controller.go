@@ -242,6 +242,13 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 					ProviderName:       providerEntity.Name,
 				})
 			}
+
+			result, _ := controller.UserRecordSeriesEpisodeService.CreateBulkUserRecordSeriesEpisode(ctx.Context(), episodes)
+			return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+				Code:    fiber.StatusCreated,
+				Message: "success",
+				Data:    result,
+			})
 		}
 	} else {
 		// 내 서재에 등록한 작품에 단일 회차를 기록할 때
@@ -250,7 +257,7 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 				return episode.EpisodeNumber == request.To
 			})
 			if ok {
-				result, _ := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
+				result, err := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
 					UserRecordSeriesId: request.UserRecordSeriesId,
 					EpisodeId:          currentEpisode.Id,
 					EpisodeNumber:      currentEpisode.EpisodeNumber,
@@ -258,14 +265,27 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 					ProviderId:         providerEntity.Id,
 					ProviderName:       providerEntity.Name,
 				})
+
+				if err != nil {
+					return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+						Code:    fiber.StatusBadRequest,
+						Message: err.Error(),
+						Data:    nil,
+					})
+				}
+
+				// result to array
+				var results []entity.UserRecordSeriesEpisode
+				results = append(results, result)
+
 				return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
 					Code:    fiber.StatusCreated,
 					Message: "success",
-					Data:    result,
+					Data:    results,
 				})
 			}
 		} else {
-			result, _ := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
+			result, err := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
 				UserRecordSeriesId: request.UserRecordSeriesId,
 				EpisodeId:          0,
 				EpisodeNumber:      request.To,
@@ -273,10 +293,23 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 				ProviderId:         providerEntity.Id,
 				ProviderName:       providerEntity.Name,
 			})
+
+			if err != nil {
+				return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+					Code:    fiber.StatusBadRequest,
+					Message: err.Error(),
+					Data:    nil,
+				})
+			}
+
+			// result to array
+			var results []entity.UserRecordSeriesEpisode
+			results = append(results, result)
+
 			return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
 				Code:    fiber.StatusCreated,
 				Message: "success",
-				Data:    result,
+				Data:    results,
 			})
 		}
 	}

@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"errors"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"github.com/dokjasijeom/backend/service"
@@ -23,6 +24,25 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) GetUse
 
 // Create user record series episode
 func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) CreateUserRecordSeriesEpisode(ctx context.Context, userRecordSeriesEpisode entity.UserRecordSeriesEpisode) (entity.UserRecordSeriesEpisode, error) {
+	currentHasUserRecordSeriesEpisodes, err := userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.GetUserRecordSeriesEpisodeByUserRecordSeriesId(ctx, userRecordSeriesEpisode.UserRecordSeriesId)
+	if err != nil {
+		return entity.UserRecordSeriesEpisode{}, err
+	}
+	if len(currentHasUserRecordSeriesEpisodes) > 0 {
+		// for문 반복을 통해 존재하는지 체크
+		for _, currentHasUserRecordSeriesEpisode := range currentHasUserRecordSeriesEpisodes {
+			if userRecordSeriesEpisode.EpisodeId != 0 {
+				if currentHasUserRecordSeriesEpisode.EpisodeId == userRecordSeriesEpisode.EpisodeId {
+					return entity.UserRecordSeriesEpisode{}, errors.New("already exists recorded episode")
+				}
+			} else {
+				if currentHasUserRecordSeriesEpisode.EpisodeNumber == userRecordSeriesEpisode.EpisodeNumber {
+					return entity.UserRecordSeriesEpisode{}, errors.New("already exists recorded episode")
+				}
+			}
+		}
+	}
+
 	return userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.CreateUserRecordSeriesEpisode(ctx, userRecordSeriesEpisode)
 }
 
@@ -38,16 +58,30 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Create
 	if len(currentHasUserRecordSeriesEpisodes) > 0 {
 		// for문 반복을 통해 존재하는지 체크
 		for _, userRecordSeriesEpisode := range userRecordSeriesEpisodes {
-			_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
-				return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
-			})
-			_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
-				return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
-			})
+			if userRecordSeriesEpisode.EpisodeId != 0 {
+				_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+					return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
+				})
+				_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+					return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
+				})
 
-			if ok && isFind {
-				// 존재한다면 해당 회차를 제외한다.
-				clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+				if ok && isFind {
+					// 존재한다면 해당 회차를 제외한다.
+					clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+				}
+			} else {
+				_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+					return item.EpisodeNumber == userRecordSeriesEpisode.EpisodeNumber
+				})
+				_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+					return item.EpisodeNumber == userRecordSeriesEpisode.EpisodeNumber
+				})
+
+				if ok && isFind {
+					// 존재한다면 해당 회차를 제외한다.
+					clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+				}
 			}
 		}
 	}
