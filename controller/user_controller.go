@@ -339,6 +339,22 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 		return err
 	}
 
+	if request.UserRecordSeriesId == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "user record series id is required",
+			Data:    nil,
+		})
+	}
+
+	if len(request.RecordIds) == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "record ids is required",
+			Data:    nil,
+		})
+	}
+
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	userEmail := claims["email"].(string)
