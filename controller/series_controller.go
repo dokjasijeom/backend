@@ -545,6 +545,14 @@ func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) e
 		})
 	}
 
+	if recordEntity.SeriesId != 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "This is not user added empty series",
+			Data:    nil,
+		})
+	}
+
 	err = controller.UserRecordSeriesService.DeleteUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.Id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
