@@ -33,7 +33,7 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.Episodes").Preload("RecordSeries.Series").Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries.Series").Preload("RecordSeries.RecordEpisodes").Find(&userResult)
 	err := result.Error
 
 	config := configuration.New()
@@ -67,6 +67,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 		userResult.LikeSeries[i].Providers = make([]entity.Provider, 0)
 		for _, sp := range userResult.LikeSeries[i].SeriesProvider {
 			sp.Provider.Link = sp.Link
+			sp.Provider.Id = 0
 			userResult.LikeSeries[i].Providers = append(userResult.LikeSeries[i].Providers, sp.Provider)
 		}
 
@@ -87,6 +88,14 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 
 	}
 	userResult.LikeSeriesCount = uint(len(userResult.LikeSeries))
+
+	for i := range userResult.RecordSeries {
+		if userResult.RecordSeries[i].SeriesId != 0 {
+			userResult.RecordSeries[i].Series.Id = 0
+		} else {
+			userResult.RecordSeries[i].Series = nil
+		}
+	}
 
 	return userResult, err
 }

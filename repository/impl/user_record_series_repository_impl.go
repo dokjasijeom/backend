@@ -5,6 +5,7 @@ import (
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
+	"log"
 )
 
 func NewUserRecordSeriesRepositoryImpl(DB *gorm.DB) repository.UserRecordSeriesRepository {
@@ -45,6 +46,7 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordS
 
 // Create user record series
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) CreateUserRecordSeries(ctx context.Context, userRecordSeries entity.UserRecordSeries) (entity.UserRecordSeries, error) {
+	log.Println("userRecordSeries: ", userRecordSeries)
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Create(&userRecordSeries)
 	return userRecordSeries, result.Error
 }

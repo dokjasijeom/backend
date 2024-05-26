@@ -8,6 +8,7 @@ import (
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"log"
 	"time"
 )
 
@@ -28,13 +29,13 @@ func (controller SeriesController) Route(app fiber.Router) {
 	series := app.Group("/series")
 	series.Get("/", controller.GetAllSeries)
 	series.Get("/new", controller.GetNewEpisodeUpdateProviderSeries)
+	series.Post("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordEmptySeries)
+	series.Delete("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordEmptySeries)
 	series.Get("/:hashId", controller.GetSeriesByHashId)
 	series.Post("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.LikeSeries)
 	series.Delete("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.UnlikeSeries)
 	series.Post("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeries)
 	series.Delete("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeries)
-	series.Post("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordEmptySeries)
-	series.Delete("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordEmptySeries)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
@@ -419,13 +420,28 @@ func (controller SeriesController) DeleteUserRecordSeries(ctx *fiber.Ctx) error 
 
 // create user record empty series
 func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) error {
+	var request = model.UserRecordSeriesEmptyModel{}
+	err := ctx.BodyParser(&request)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	log.Println(request.Title)
+	log.Println(request.Author)
+	log.Println(request.Genre)
+	log.Println(request.TotalEpisode)
+
+	log.Println(request)
+
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	userEmail := claims["email"].(string)
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
-
-	var request = model.UserRecordSeriesEmptyModel{}
-	err := ctx.BodyParser(&request)
 
 	userRecordSeries := entity.UserRecordSeries{
 		UserId:       userEntity.Id,
@@ -435,6 +451,8 @@ func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) e
 		Genre:        request.Genre,
 		TotalEpisode: request.TotalEpisode,
 	}
+
+	log.Println(userRecordSeries)
 
 	record, err := controller.UserRecordSeriesService.CreateUserRecordSeries(ctx.Context(), userRecordSeries)
 	if err != nil {
@@ -454,13 +472,13 @@ func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) e
 
 // delete user record empty series
 func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) error {
+	var request = model.UserRecordSeriesEmptyModel{}
+	err := ctx.BodyParser(&request)
+
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	userEmail := claims["email"].(string)
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
-
-	var request = model.UserRecordSeriesEmptyModel{}
-	err := ctx.BodyParser(&request)
 
 	if request.Id == 0 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
@@ -470,7 +488,7 @@ func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) e
 		})
 	}
 
-	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, request.Id)
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.Id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    fiber.StatusInternalServerError,

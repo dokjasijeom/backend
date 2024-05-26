@@ -35,7 +35,7 @@ type Series struct {
 	ViewCount    uint   `gorm:"column:view_count;type:int(11);not null;default:0;index" json:"viewCount,omitempty"`
 	DisplayTags  string `gorm:"-" json:"displayTags,omitempty"`
 	TotalEpisode uint   `gorm:"column:total_episode;type:int(11);not null;default:0;index" json:"totalEpisode"`
-	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete,default:false"`
+	IsComplete   bool   `gorm:"column:is_complete;type:tinyint(1);not null" json:"isComplete"`
 
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
