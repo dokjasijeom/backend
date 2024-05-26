@@ -48,6 +48,10 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordS
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) CreateUserRecordSeries(ctx context.Context, userRecordSeries entity.UserRecordSeries) (entity.UserRecordSeries, error) {
 	log.Println("userRecordSeries: ", userRecordSeries)
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Create(&userRecordSeries)
+	if userRecordSeries.SeriesId == 0 {
+		userRecordSeries.Series = nil
+	}
+	userRecordSeries.RecordEpisodes = nil
 	return userRecordSeries, result.Error
 }
 

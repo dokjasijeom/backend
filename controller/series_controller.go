@@ -344,6 +344,15 @@ func (controller SeriesController) CreateUserRecordSeries(ctx *fiber.Ctx) error 
 		})
 	}
 
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, series.Id)
+	if recordEntity.Id != 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "User has already recorded this series",
+			Data:    nil,
+		})
+	}
+
 	userRecordSeries := entity.UserRecordSeries{
 		UserId:       userEntity.Id,
 		SeriesId:     series.Id,
@@ -392,6 +401,13 @@ func (controller SeriesController) DeleteUserRecordSeries(ctx *fiber.Ctx) error 
 	}
 
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, series.Id)
+	if recordEntity.Id == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "User has not recorded this series",
+			Data:    nil,
+		})
+	}
 
 	err = controller.UserRecordSeriesService.DeleteUserRecordSeriesByUserIdAndSeriesId(ctx.Context(), userEntity.Id, series.Id)
 	if err != nil {
@@ -422,6 +438,38 @@ func (controller SeriesController) DeleteUserRecordSeries(ctx *fiber.Ctx) error 
 func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) error {
 	var request = model.UserRecordSeriesEmptyModel{}
 	err := ctx.BodyParser(&request)
+
+	if request.Title == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid title",
+			Data:    nil,
+		})
+	}
+
+	if request.Author == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid author",
+			Data:    nil,
+		})
+	}
+
+	if request.Genre == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid genre",
+			Data:    nil,
+		})
+	}
+
+	if request.TotalEpisode == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid totalEpisode",
+			Data:    nil,
+		})
+	}
 
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
@@ -475,11 +523,6 @@ func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) e
 	var request = model.UserRecordSeriesEmptyModel{}
 	err := ctx.BodyParser(&request)
 
-	user := ctx.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	userEmail := claims["email"].(string)
-	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
-
 	if request.Id == 0 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Code:    fiber.StatusBadRequest,
@@ -487,6 +530,11 @@ func (controller SeriesController) DeleteUserRecordEmptySeries(ctx *fiber.Ctx) e
 			Data:    nil,
 		})
 	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
 
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.Id)
 	if err != nil {
