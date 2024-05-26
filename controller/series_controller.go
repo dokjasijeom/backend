@@ -33,8 +33,8 @@ func (controller SeriesController) Route(app fiber.Router) {
 	series.Delete("/:hashId/like", middleware.AuthenticateJWT("ANY", controller.Config), controller.UnlikeSeries)
 	series.Post("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeries)
 	series.Delete("/:hashId/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeries)
-	series.Post("/empty/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordEmptySeries)
-	series.Delete("/empty/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordEmptySeries)
+	series.Post("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordEmptySeries)
+	series.Delete("/non-exist/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordEmptySeries)
 }
 
 func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {

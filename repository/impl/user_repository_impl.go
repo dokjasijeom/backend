@@ -50,6 +50,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 		}
 
 		for genreI := range userResult.LikeSeries[i].Genres {
+			userResult.LikeSeries[i].Genres[genreI].Id = 0
 			userResult.LikeSeries[i].DisplayTags += "#" + userResult.LikeSeries[i].Genres[genreI].Name + " "
 		}
 		userResult.LikeSeries[i].TotalEpisode = uint(len(userResult.LikeSeries[i].Episodes))
@@ -58,6 +59,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 		// 작가 유형 반영해서 Authors 필드에 반영
 		userResult.LikeSeries[i].Authors = make([]entity.Person, 0)
 		for _, sa := range userResult.LikeSeries[i].SeriesAuthors {
+			sa.Person.Id = 0
 			sa.Person.PersonType = sa.PersonType
 			userResult.LikeSeries[i].Authors = append(userResult.LikeSeries[i].Authors, sa.Person)
 		}
