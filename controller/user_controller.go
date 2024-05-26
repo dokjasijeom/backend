@@ -208,12 +208,49 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 		// 내 서재에 등록한 작품에 다중 회차를 기록할 때
 		var episodes []entity.UserRecordSeriesEpisode
 		// create bulk user record series episode
-		for i := request.From; i <= request.To; i++ {
+		if recordEntity.SeriesId != 0 && recordEntity.Title != "" {
+			for i := request.From; i <= request.To; i++ {
+				currentEpisode, ok := lo.Find(seriesEpisodes, func(episode entity.Episode) bool {
+					return episode.EpisodeNumber == i
+				})
+				if ok {
+					episodes = append(episodes, entity.UserRecordSeriesEpisode{
+						UserRecordSeriesId: request.UserRecordSeriesId,
+						EpisodeId:          currentEpisode.Id,
+						EpisodeNumber:      currentEpisode.EpisodeNumber,
+						Watched:            true,
+						ProviderId:         providerEntity.Id,
+						ProviderName:       providerEntity.Name,
+					})
+				}
+			}
+
+			result, _ := controller.UserRecordSeriesEpisodeService.CreateBulkUserRecordSeriesEpisode(ctx.Context(), episodes)
+			return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+				Code:    fiber.StatusCreated,
+				Message: "success",
+				Data:    result,
+			})
+		} else {
+			for i := request.From; i <= request.To; i++ {
+				episodes = append(episodes, entity.UserRecordSeriesEpisode{
+					UserRecordSeriesId: request.UserRecordSeriesId,
+					EpisodeId:          0,
+					EpisodeNumber:      i,
+					Watched:            true,
+					ProviderId:         providerEntity.Id,
+					ProviderName:       providerEntity.Name,
+				})
+			}
+		}
+	} else {
+		// 내 서재에 등록한 작품에 단일 회차를 기록할 때
+		if recordEntity.SeriesId != 0 && recordEntity.Title != "" {
 			currentEpisode, ok := lo.Find(seriesEpisodes, func(episode entity.Episode) bool {
-				return episode.EpisodeNumber == i
+				return episode.EpisodeNumber == request.To
 			})
 			if ok {
-				episodes = append(episodes, entity.UserRecordSeriesEpisode{
+				result, _ := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
 					UserRecordSeriesId: request.UserRecordSeriesId,
 					EpisodeId:          currentEpisode.Id,
 					EpisodeNumber:      currentEpisode.EpisodeNumber,
@@ -221,25 +258,17 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 					ProviderId:         providerEntity.Id,
 					ProviderName:       providerEntity.Name,
 				})
+				return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+					Code:    fiber.StatusCreated,
+					Message: "success",
+					Data:    result,
+				})
 			}
-		}
-
-		result, _ := controller.UserRecordSeriesEpisodeService.CreateBulkUserRecordSeriesEpisode(ctx.Context(), episodes)
-		return ctx.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
-			Code:    fiber.StatusCreated,
-			Message: "success",
-			Data:    result,
-		})
-	} else {
-		// 내 서재에 등록한 작품에 단일 회차를 기록할 때
-		currentEpisode, ok := lo.Find(seriesEpisodes, func(episode entity.Episode) bool {
-			return episode.EpisodeNumber == request.To
-		})
-		if ok {
+		} else {
 			result, _ := controller.UserRecordSeriesEpisodeService.CreateUserRecordSeriesEpisode(ctx.Context(), entity.UserRecordSeriesEpisode{
 				UserRecordSeriesId: request.UserRecordSeriesId,
-				EpisodeId:          currentEpisode.Id,
-				EpisodeNumber:      currentEpisode.EpisodeNumber,
+				EpisodeId:          0,
+				EpisodeNumber:      request.To,
 				Watched:            true,
 				ProviderId:         providerEntity.Id,
 				ProviderName:       providerEntity.Name,
