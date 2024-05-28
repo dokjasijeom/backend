@@ -72,3 +72,8 @@ func (userService *userServiceImpl) GetUserByEmail(ctx context.Context, email st
 	userResult, _ := userService.UserRepository.GetUserByEmail(ctx, email)
 	return userResult
 }
+
+func (userService *userServiceImpl) GetUserByEmailAndSeries(ctx context.Context, email string) entity.User {
+	userResult, _ := userService.UserRepository.GetUserByEmailAndSeries(ctx, email)
+	return userResult
+}

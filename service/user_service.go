@@ -12,4 +12,6 @@ type UserService interface {
 	CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error)
 	// Get User By Email
 	GetUserByEmail(ctx context.Context, email string) entity.User
+	// Get User By Email And Series
+	GetUserByEmailAndSeries(ctx context.Context, email string) entity.User
 }

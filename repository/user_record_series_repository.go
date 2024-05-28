@@ -8,6 +8,8 @@ import (
 type UserRecordSeriesRepository interface {
 	// Get user record series by id
 	GetUserRecordSeriesById(ctx context.Context, id uint) (entity.UserRecordSeries, error)
+	// Get user record series item
+	GetUserRecordSeriesItem(ctx context.Context, id uint) (*entity.Series, error)
 	// Get user record series by user id
 	GetUserRecordSeriesByUserId(ctx context.Context, userId uint) ([]entity.UserRecordSeries, error)
 	// Get user record series by user id and series id

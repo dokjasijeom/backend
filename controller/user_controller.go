@@ -32,6 +32,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
+	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
 }
 
 // Authenticate user
@@ -150,7 +151,7 @@ func (controller UserController) GetUser(ctx *fiber.Ctx) error {
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	userEmail := claims["email"].(string)
-	result := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	result := controller.UserService.GetUserByEmailAndSeries(ctx.Context(), userEmail)
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "success",
@@ -383,5 +384,51 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 		Code:    fiber.StatusNoContent,
 		Message: "success",
 		Data:    nil,
+	})
+}
+
+// Get user record series
+// Path: GET /user/series/:id
+// @Description Get user record series
+// @Summary Get user record series
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path int true "User Record Series Id"
+// @Success 200 {object} model.GeneralResponse
+// @Router /user/series/{id} [get]
+func (controller UserController) GetUserRecordSeries(ctx *fiber.Ctx) error {
+	id, err := ctx.ParamsInt("id", 0)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "id is required",
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, uint(id))
+	if err != nil {
+		return err
+	}
+
+	if recordEntity.Id == 0 {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "record not found",
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    recordEntity,
 	})
 }
