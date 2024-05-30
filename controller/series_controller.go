@@ -357,6 +357,7 @@ func (controller SeriesController) CreateUserRecordSeries(ctx *fiber.Ctx) error 
 		UserId:       userEntity.Id,
 		SeriesId:     series.Id,
 		TotalEpisode: series.TotalEpisode,
+		SeriesType:   series.SeriesType,
 	}
 
 	record, err := controller.UserRecordSeriesService.CreateUserRecordSeries(ctx.Context(), userRecordSeries)
@@ -471,6 +472,14 @@ func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) e
 		})
 	}
 
+	if request.SeriesType != "webnovel" && request.SeriesType != "webtoon" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid seriesType",
+			Data:    nil,
+		})
+	}
+
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Code:    fiber.StatusBadRequest,
@@ -498,6 +507,7 @@ func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) e
 		Author:       request.Author,
 		Genre:        request.Genre,
 		TotalEpisode: request.TotalEpisode,
+		SeriesType:   entity.SeriesType(request.SeriesType),
 	}
 
 	log.Println(userRecordSeries)
