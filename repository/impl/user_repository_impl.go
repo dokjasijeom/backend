@@ -41,10 +41,20 @@ func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, em
 
 func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes").Find(&userResult)
-	err := result.Error
-
 	config := configuration.New()
+	releaseMode := config.Get("RELEASE_MODE")
+
+	tablePrefix := func(releaseMode string) string {
+		if releaseMode == "development" {
+			return "dev_"
+		} else {
+			return ""
+		}
+	}(releaseMode)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
+		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
+	}).Find(&userResult)
+	err := result.Error
 
 	for i := range userResult.LikeSeries {
 		userResult.LikeSeries[i].Id = 0

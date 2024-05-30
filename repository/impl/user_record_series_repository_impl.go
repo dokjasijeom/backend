@@ -41,10 +41,20 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordS
 // Get user record series by user id and user record series id
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordSeriesByUserIdAndId(ctx context.Context, userId, id uint) (entity.UserRecordSeries, error) {
 	var userRecordSeries entity.UserRecordSeries
-	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND id = ?", userId, id).Preload("RecordEpisodes").First(&userRecordSeries)
-	err := result.Error
-
 	config := configuration.New()
+	releaseMode := config.Get("RELEASE_MODE")
+
+	tablePrefix := func(releaseMode string) string {
+		if releaseMode == "development" {
+			return "dev_"
+		} else {
+			return ""
+		}
+	}(releaseMode)
+	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND id = ?", userId, id).Preload("RecordEpisodes", func(db *gorm.DB) *gorm.DB {
+		return db.Order(tablePrefix + "user_record_series_episodes.episode_number desc")
+	}).First(&userRecordSeries)
+	err := result.Error
 
 	if userRecordSeries.SeriesId != 0 {
 		series, err := userRecordSeriesRepository.GetUserRecordSeriesItem(ctx, userRecordSeries.SeriesId)
