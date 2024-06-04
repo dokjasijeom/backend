@@ -15,6 +15,7 @@ type User struct {
 	RecordSeries      []UserRecordSeries `json:"recordSeries"`
 	LikeSeriesCount   uint               `json:"likeSeriesCount"`
 	RecordSeriesCount uint               `json:"recordSeriesCount"`
+	Profile           UserProfile        `json:"profile"`
 	CreatedAt         time.Time          `json:"-"`
 	UpdatedAt         time.Time          `json:"-"`
 	DeletedAt         gorm.DeletedAt     `gorm:"index" json:"-"`

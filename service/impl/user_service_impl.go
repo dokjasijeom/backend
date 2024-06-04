@@ -5,18 +5,20 @@ import (
 	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
+	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/repository"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/speps/go-hashids/v2"
 )
 
-func NewUserServiceImpl(userRepository *repository.UserRepository, userRoleRepository *repository.UserRoleRepository) service.UserService {
-	return &userServiceImpl{UserRepository: *userRepository, UserRoleRepository: *userRoleRepository}
+func NewUserServiceImpl(userRepository *repository.UserRepository, userRoleRepository *repository.UserRoleRepository, userProfileRepository *repository.UserProfileRepository) service.UserService {
+	return &userServiceImpl{UserRepository: *userRepository, UserRoleRepository: *userRoleRepository, UserProfileRepository: *userProfileRepository}
 }
 
 type userServiceImpl struct {
 	repository.UserRepository
 	repository.UserRoleRepository
+	repository.UserProfileRepository
 }
 
 func (userService *userServiceImpl) CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error) {
@@ -76,4 +78,14 @@ func (userService *userServiceImpl) GetUserByEmail(ctx context.Context, email st
 func (userService *userServiceImpl) GetUserByEmailAndSeries(ctx context.Context, email string) entity.User {
 	userResult, _ := userService.UserRepository.GetUserByEmailAndSeries(ctx, email)
 	return userResult
+}
+
+func (userService *userServiceImpl) UpdateUserProfile(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error) {
+	err := userService.UserProfileRepository.UpdateUserProfile(ctx, id, request)
+	return err == nil, err
+}
+
+func (userService *userServiceImpl) UpdateUserPassword(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error) {
+	err := userService.UserRepository.UpdateUserPassword(ctx, id, request.Password)
+	return err == nil, err
 }

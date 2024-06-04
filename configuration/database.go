@@ -64,6 +64,7 @@ func ConnectDatabase() *gorm.DB {
 	database.AutoMigrate(&entity.UserLikeSeriesCount{})
 	database.AutoMigrate(&entity.UserRecordSeries{})
 	database.AutoMigrate(&entity.UserRecordSeriesEpisode{})
+	database.AutoMigrate(&entity.UserProfile{})
 
 	return database
 }

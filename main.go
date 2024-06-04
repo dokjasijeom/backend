@@ -37,9 +37,10 @@ func main() {
 	seriesDailyViewRepository := repository.NewSeriesDailyViewRepositoryImpl(database)
 	userRecordSeriesRepository := repository.NewUserRecordSeriesRepositoryImpl(database)
 	userRecordSeriesEpisodeRepository := repository.NewUserRecordSeriesEpisodeRepositoryImpl(database)
+	userProfileRepository := repository.NewUserProfileRepositoryImpl(database)
 
 	// service
-	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository)
+	userService := service.NewUserServiceImpl(&userRepository, &userRoleRepository, &userProfileRepository)
 	//roleService := service.NewRoleServiceImpl(&roleRepository)
 	seriesService := service.NewSeriesServiceImpl(&seriesRepository)
 	genreService := service.NewGenreServiceImpl(&genreRepository)

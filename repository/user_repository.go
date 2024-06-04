@@ -34,4 +34,6 @@ type UserRepository interface {
 	CompareHashAndPassword(password string, encodedHash string) (bool, error)
 	// Decode Hash
 	DecodeHash(encodedHash string) (p *common.HashParams, salt, hash []byte, err error)
+	// Update user password
+	UpdateUserPassword(ctx context.Context, id uint, password string) error
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/model"
 )
 
 type UserService interface {
@@ -14,4 +15,8 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) entity.User
 	// Get User By Email And Series
 	GetUserByEmailAndSeries(ctx context.Context, email string) entity.User
+	// Update User Profile
+	UpdateUserProfile(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error)
+	// Update User Password
+	UpdateUserPassword(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error)
 }

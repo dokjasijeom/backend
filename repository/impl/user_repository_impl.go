@@ -319,3 +319,23 @@ func (userRepository *userRepositoryImpl) DecodeHash(encodedHash string) (p *com
 
 	return p, salt, hash, nil
 }
+
+func (userRepository *userRepositoryImpl) UpdateUserPassword(ctx context.Context, id uint, password string) error {
+	var userResult entity.User
+	result := userRepository.DB.WithContext(ctx).Where("id = ?", id).Find(&userResult)
+	if result.RowsAffected == 0 {
+		exception.PanicLogging("user not found")
+	}
+	encodedPassword, err := userRepository.GenerateFromPassword(password)
+	if err != nil {
+		exception.PanicLogging(err)
+		return err
+	}
+	userResult.Password = encodedPassword
+	result = userRepository.DB.WithContext(ctx).Save(&userResult)
+	if result.Error != nil {
+		exception.PanicLogging(result.Error)
+		return result.Error
+	}
+	return nil
+}

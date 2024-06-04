@@ -1,15 +1,27 @@
 package controller
 
 import (
+	"bytes"
+	"context"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/dokjasijeom/backend/common"
 	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
+	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/middleware"
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"golang.org/x/image/webp"
+	"image"
+	"image/jpeg"
+	"io"
+	"log"
+	"os"
+	"strings"
 )
 
 func NewUserController(userService *service.UserService, seriesService *service.SeriesService, episodeService *service.EpisodeService, providerService *service.ProviderService, userRecordSeriesService *service.UserRecordSeriesService, userRecordSeriesEpisodeService *service.UserRecordSeriesEpisodeService, config configuration.Config) *UserController {
@@ -30,6 +42,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/user/auth", controller.AuthenticateUser)
 	app.Post("/users", controller.CreateUser)
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
+	app.Patch("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUser)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
@@ -152,6 +165,97 @@ func (controller UserController) GetUser(ctx *fiber.Ctx) error {
 	claims := user.Claims.(jwt.MapClaims)
 	userEmail := claims["email"].(string)
 	result := controller.UserService.GetUserByEmailAndSeries(ctx.Context(), userEmail)
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    result,
+	})
+}
+
+// Update user
+// Path: PATCH /user
+// @Description Update user
+// @Summary Update user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body UserUpdateRequestModel true "Request Body"
+// @Success 200 {object} model.GeneralResponse
+// @Router /user [patch]
+func (controller UserController) UpdateUser(ctx *fiber.Ctx) error {
+	var request = model.UserUpdateRequestModel{}
+	form, err := ctx.MultipartForm()
+
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	// update user avatar
+	fileheader, err := ctx.FormFile("image")
+	if fileheader != nil {
+		file, err := fileheader.Open()
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+
+		buffer, err := io.ReadAll(file)
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+
+		ext := fileheader.Filename[strings.LastIndex(fileheader.Filename, "."):]
+
+		filename, err := imageProcessing(ctx.Context(), ext, buffer, 50)
+		if err != nil {
+			exception.PanicLogging(err)
+		}
+		request.Avatar = filename
+	}
+
+	// update user name
+	if form.Value["username"] != nil {
+		request.Username = form.Value["username"][0]
+	}
+
+	if form.Value["password"] != nil {
+		request.Password = form.Value["password"][0]
+	}
+
+	if form.Value["passwordConfirm"] != nil {
+		request.PasswordConfirm = form.Value["passwordConfirm"][0]
+	}
+
+	// update user
+	result, err := controller.UserService.UpdateUserProfile(ctx.Context(), userEntity.Id, request)
+	if err != nil {
+		return err
+	}
+
+	if request.Password != "" && request.PasswordConfirm != "" && request.Password == request.PasswordConfirm {
+		_, err = controller.UserService.UpdateUserPassword(ctx.Context(), userEntity.Id, request)
+		if err != nil {
+			return err
+		}
+	}
+
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    fiber.StatusOK,
 		Message: "success",
@@ -439,4 +543,57 @@ func (controller UserController) GetUserRecordSeries(ctx *fiber.Ctx) error {
 		Message: "success",
 		Data:    recordEntity,
 	})
+}
+
+func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality int) (string, error) {
+	filename := strings.Replace(uuid.New().String(), "-", "", -1) + ".jpg"
+	var img image.Image
+	var err error
+
+	if fileExt == ".webp" {
+		img, err = webp.Decode(bytes.NewReader(buffer))
+	} else {
+		img, _, err = image.Decode(bytes.NewReader(buffer))
+	}
+
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+	var jpegBuffer bytes.Buffer
+	err = jpeg.Encode(&jpegBuffer, img, &jpeg.Options{Quality: quality})
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	f, err := os.CreateTemp("./tmp/", "tempfile-")
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	if _, err := f.Write(jpegBuffer.Bytes()); err != nil {
+		exception.PanicLogging(err)
+	}
+
+	cld, err := configuration.NewCloudinaryConfigruation()
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	filenameWithoutExt := strings.TrimSuffix(filename, ".jpg")
+
+	uploadResult, err := cld.Upload.Upload(ctx, f.Name(), uploader.UploadParams{
+		ResourceType: "image",
+		PublicID:     filenameWithoutExt,
+		Folder:       "avatar",
+	})
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	defer f.Close()
+	defer os.Remove(f.Name())
+
+	log.Println(uploadResult)
+
+	return "avatar/" + filename, err
 }
