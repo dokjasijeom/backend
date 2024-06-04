@@ -54,12 +54,13 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Create
 	}
 
 	clonedUserRecordSeriesEpisodes := userRecordSeriesEpisodes
+	var updateUserRecordSeriesEpisodes []entity.UserRecordSeriesEpisode
 	// 만약 다중 회차를 기록하려는 중 이미 DB에 기록된 회차가 있다면 해당 회차를 제외한다.
 	if len(currentHasUserRecordSeriesEpisodes) > 0 {
 		// for문 반복을 통해 존재하는지 체크
 		for _, userRecordSeriesEpisode := range userRecordSeriesEpisodes {
 			if userRecordSeriesEpisode.EpisodeId != 0 {
-				_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+				findItem, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
 					return item.EpisodeId == userRecordSeriesEpisode.EpisodeId
 				})
 				_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
@@ -69,9 +70,14 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Create
 				if ok && isFind {
 					// 존재한다면 해당 회차를 제외한다.
 					clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+					// 업데이트할 회차를 추가한다.
+					findItem.ProviderId = userRecordSeriesEpisode.ProviderId
+					findItem.ProviderName = userRecordSeriesEpisode.ProviderName
+					findItem.Watched = userRecordSeriesEpisode.Watched
+					updateUserRecordSeriesEpisodes = append(updateUserRecordSeriesEpisodes, findItem)
 				}
 			} else {
-				_, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
+				findItem, ok := lo.Find(currentHasUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
 					return item.EpisodeNumber == userRecordSeriesEpisode.EpisodeNumber
 				})
 				_, index, isFind := lo.FindIndexOf(clonedUserRecordSeriesEpisodes, func(item entity.UserRecordSeriesEpisode) bool {
@@ -81,7 +87,22 @@ func (userRecordSeriesEpisodeService *userRecordSeriesEpisodeServiceImpl) Create
 				if ok && isFind {
 					// 존재한다면 해당 회차를 제외한다.
 					clonedUserRecordSeriesEpisodes = append(clonedUserRecordSeriesEpisodes[:index], clonedUserRecordSeriesEpisodes[index+1:]...)
+					// 업데이트할 회차를 추가한다.
+					findItem.ProviderId = userRecordSeriesEpisode.ProviderId
+					findItem.ProviderName = userRecordSeriesEpisode.ProviderName
+					findItem.Watched = userRecordSeriesEpisode.Watched
+					updateUserRecordSeriesEpisodes = append(updateUserRecordSeriesEpisodes, findItem)
 				}
+			}
+		}
+	}
+
+	// 업데이트할 회차가 있다면 업데이트한다.
+	if len(updateUserRecordSeriesEpisodes) > 0 {
+		for _, updateUserRecordSeriesEpisode := range updateUserRecordSeriesEpisodes {
+			_, err := userRecordSeriesEpisodeService.UserRecordSeriesEpisodeRepository.UpdateUserRecordSeriesEpisodeById(ctx, updateUserRecordSeriesEpisode.Id, updateUserRecordSeriesEpisode)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
