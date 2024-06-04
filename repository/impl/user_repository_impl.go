@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
 	"log"
+	"slices"
 	"strings"
 )
 
@@ -106,6 +107,14 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 	userResult.LikeSeriesCount = uint(len(userResult.LikeSeries))
 
 	for i := range userResult.RecordSeries {
+		var recordProviders []string
+		for _, rEpisode := range userResult.RecordSeries[i].RecordEpisodes {
+			if !slices.Contains(recordProviders, rEpisode.ProviderName) {
+				recordProviders = append(recordProviders, rEpisode.ProviderName)
+			}
+		}
+		userResult.RecordSeries[i].RecordProviders = recordProviders
+
 		if userResult.RecordSeries[i].SeriesId != 0 {
 			userResult.RecordSeries[i].Series.Id = 0
 

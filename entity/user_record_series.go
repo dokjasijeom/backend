@@ -18,6 +18,7 @@ type UserRecordSeries struct {
 	SeriesType         SeriesType                `gorm:"column:series_type;type:varchar(255);null" json:"seriesType"`
 	RecordEpisodeCount uint                      `gorm:"column:record_episode_count;type:int(11);null;default:0" json:"recordEpisodeCount"`
 	RecordEpisodes     []UserRecordSeriesEpisode `json:"recordEpisodes"`
+	RecordProviders    []string                  `gorm:"-" json:"recordProviders"`
 	CreatedAt          time.Time                 `json:"-"`
 	DeletedAt          gorm.DeletedAt            `json:"-"`
 }
