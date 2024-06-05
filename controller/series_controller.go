@@ -54,7 +54,6 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 				Data:    nil,
 			})
 		}
-
 	} else {
 		result, err = controller.SeriesService.GetAllSeries(ctx.Context())
 		if err != nil {
@@ -66,7 +65,6 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 		}
 	}
 
-	// result for and i want to change Thumbnail Variable value
 	for i, v := range result {
 		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
 		// series 결과 목록에서 Id 필드값을 제거
@@ -124,7 +122,6 @@ func (controller SeriesController) GetNewEpisodeUpdateProviderSeries(ctx *fiber.
 		})
 	}
 
-	// result for and i want to change Thumbnail Variable value
 	for i, v := range result {
 		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
 		// series 결과 목록에서 Id 필드값을 제거
