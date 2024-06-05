@@ -228,6 +228,13 @@ func (controller UserController) UpdateUser(ctx *fiber.Ctx) error {
 			exception.PanicLogging(err)
 		}
 		request.Avatar = filename
+
+		if userEntity.Profile.Avatar != "" {
+			err = removeImage(ctx.Context(), userEntity.Profile.Avatar)
+			if err != nil {
+				exception.PanicLogging(err)
+			}
+		}
 	}
 
 	// update user name
@@ -596,4 +603,22 @@ func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality
 	log.Println(uploadResult)
 
 	return "avatar/" + filename, err
+}
+
+func removeImage(ctx context.Context, filePath string) error {
+	cld, err := configuration.NewCloudinaryConfigruation()
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	filename := strings.TrimPrefix(filePath, "avatar/")
+
+	_, err = cld.Upload.Destroy(ctx, uploader.DestroyParams{
+		PublicID: filename,
+	})
+	if err != nil {
+		exception.PanicLogging(err)
+	}
+
+	return nil
 }
