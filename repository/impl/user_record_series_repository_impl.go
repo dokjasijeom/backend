@@ -52,7 +52,7 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserRecordS
 		}
 	}(releaseMode)
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND id = ?", userId, id).Preload("RecordEpisodes", func(db *gorm.DB) *gorm.DB {
-		return db.Order(tablePrefix + "user_record_series_episodes.episode_number desc")
+		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).First(&userRecordSeries)
 	err := result.Error
 
