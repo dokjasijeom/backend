@@ -39,13 +39,8 @@ func (userRecordSeriesEpisode *UserRecordSeriesEpisode) BeforeDelete(tx *gorm.DB
 	log.Println(urs)
 	updateRecord := make(map[string]interface{})
 	updateRecord["record_episode_count"] = urs.RecordEpisodeCount - 1
-	if urs.RecordEpisodeCount-1 == 0 {
-		log.Println("0일 때")
-		tx.Model(&urs).Updates(updateRecord)
-	} else {
-		log.Println("0이 아닐 때")
-		tx.Updates(&urs)
-	}
+
+	tx.Model(&urs).Updates(updateRecord)
 
 	return nil
 }
