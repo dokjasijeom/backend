@@ -33,15 +33,9 @@ func (uls *UserLikeSeries) BeforeDelete(tx *gorm.DB) (err error) {
 	var ulsc UserLikeSeriesCount
 	tx.Model(&UserLikeSeriesCount{}).Where("series_id = ?", uls.SeriesId).First(&ulsc)
 	if ulsc != (UserLikeSeriesCount{}) {
-		if ulsc.Count-1 == 0 {
-			updateUlsc := make(map[string]interface{})
-			updateUlsc["count"] = ulsc.Count - 1
-			tx.Model(&ulsc).Updates(updateUlsc)
-		} else {
-			ulsc.Count--
-			tx.Updates(&ulsc)
-		}
-
+		updateUlsc := make(map[string]interface{})
+		updateUlsc["count"] = ulsc.Count - 1
+		tx.Model(&ulsc).Updates(updateUlsc)
 	}
 
 	var series Series
