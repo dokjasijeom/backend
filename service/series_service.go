@@ -18,9 +18,11 @@ type SeriesService interface {
 	// Get Series by HashId
 	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get all Series
-	GetAllSeries(ctx context.Context) ([]entity.Series, error)
+	GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error)
+	// Get all Series
+	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get PublishDay And SeriesType
-	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
+	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get New Episode Update Provider Series
 	GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error)
 	// Has Like Series

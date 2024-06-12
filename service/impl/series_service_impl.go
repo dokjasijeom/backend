@@ -104,19 +104,28 @@ func (seriesService *seriesServiceImpl) GetSeriesByHashId(ctx context.Context, h
 }
 
 // Get all Series
-func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
-	result, err := seriesService.SeriesRepository.GetAllSeries(ctx)
+func (seriesService *seriesServiceImpl) GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error) {
+	result, err := seriesService.SeriesRepository.GetBackofficeAllSeries(ctx)
 	if err != nil {
 		return []entity.Series{}, nil
 	}
 	return result, nil
 }
 
-// Get PublishDay And SeriesType
-func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
-	result, err := seriesService.SeriesRepository.GetSeriesByPublishDayAndSeriesType(ctx, publishDay, seriesType)
+// Get all Series
+func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error) {
+	result, err := seriesService.SeriesRepository.GetAllSeries(ctx, page, pageSize)
 	if err != nil {
-		return []entity.Series{}, nil
+		return model.SeriesWithPagination{}, nil
+	}
+	return result, nil
+}
+
+// Get PublishDay And SeriesType
+func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error) {
+	result, err := seriesService.SeriesRepository.GetSeriesByPublishDayAndSeriesType(ctx, publishDay, seriesType, page, pageSize)
+	if err != nil {
+		return model.SeriesWithPagination{}, nil
 	}
 	return result, nil
 }

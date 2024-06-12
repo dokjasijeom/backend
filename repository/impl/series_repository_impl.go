@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"github.com/dokjasijeom/backend/configuration"
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/model"
@@ -302,14 +303,17 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesById(ctx context.Context,
 	return seriesResult, nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error) {
 	var seriesResult []entity.Series
 	var publishDayResult entity.PublishDay
 	var seriesIds []uint
 
 	seriesRepository.DB.WithContext(ctx).Model(&entity.PublishDay{}).Where("day = ?", publishDay).First(&publishDayResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesPublishDay{}).Where("publish_day_id = ?", publishDayResult.Id).Pluck("series_id", &seriesIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
+
+	var totalCount int64
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Count(&totalCount)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -342,7 +346,33 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 		}
 	}
 
-	return seriesResult, nil
+	// paignation 정보 추가
+	// totalCount, currentPage, nextPage, pageSize, totalPage entity
+	// totalCount: 전체 데이터 수
+	// currentPage: 현재 페이지
+	// nextPage: 다음 페이지
+	// pageSize: 페이지당 데이터 수
+	// totalPage: 전체 페이지 수
+	totalPage := (int(totalCount) / pageSize) + 1
+	hasNext := func() bool {
+		if page >= totalPage {
+			return false
+		}
+		return true
+	}()
+
+	SeriesWithPagination := model.SeriesWithPagination{
+		Series: seriesResult,
+		Pagination: model.Pagination{
+			TotalCount:  int(totalCount),
+			CurrentPage: page,
+			HasNext:     hasNext,
+			PageSize:    pageSize,
+			TotalPage:   totalPage,
+		},
+	}
+
+	return SeriesWithPagination, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error) {
@@ -477,7 +507,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 	return seriesResult, nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) ([]entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
 
 	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
@@ -514,6 +544,77 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context) 
 	}
 
 	return seriesResult, nil
+}
+
+func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error) {
+	var seriesResult []entity.Series
+
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Find(&seriesResult)
+	if err.Error != nil {
+		exception.PanicLogging(err.Error)
+		return model.SeriesWithPagination{}, err.Error
+	}
+	var totalCount int64
+	err = seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Count(&totalCount)
+	if err.Error != nil {
+		exception.PanicLogging(err.Error)
+		return model.SeriesWithPagination{}, err.Error
+	}
+
+	for i := range seriesResult {
+		if seriesResult[i].SeriesType == "webnovel" {
+			seriesResult[i].DisplayTags = "#웹소설 "
+		} else {
+			seriesResult[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range seriesResult[i].Genres {
+			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
+		}
+		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
+		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
+
+		// 작가 유형 반영해서 Authors 필드에 반영
+		seriesResult[i].Authors = make([]entity.Person, 0)
+		for _, sa := range seriesResult[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		seriesResult[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range seriesResult[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			seriesResult[i].Providers = append(seriesResult[i].Providers, sp.Provider)
+		}
+	}
+
+	// paignation 정보 추가
+	// totalCount, currentPage, nextPage, pageSize, totalPage entity
+	// totalCount: 전체 데이터 수
+	// currentPage: 현재 페이지
+	// nextPage: 다음 페이지
+	// pageSize: 페이지당 데이터 수
+	// totalPage: 전체 페이지 수
+	totalPage := (int(totalCount) / pageSize) + 1
+	hasNext := func() bool {
+		if page >= totalPage {
+			return false
+		}
+		return true
+	}()
+
+	SeriesWithPagination := model.SeriesWithPagination{
+		Series: seriesResult,
+		Pagination: model.Pagination{
+			TotalCount:  int(totalCount),
+			CurrentPage: page,
+			HasNext:     hasNext,
+			PageSize:    pageSize,
+			TotalPage:   totalPage,
+		},
+	}
+
+	return SeriesWithPagination, nil
 }
 
 // Has Like Series

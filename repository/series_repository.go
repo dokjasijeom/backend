@@ -17,8 +17,10 @@ type SeriesRepository interface {
 	DeleteSeriesById(ctx context.Context, id uint) error
 	// Get Series by Id
 	GetSeriesById(ctx context.Context, id uint) (entity.Series, error)
+	// Get Backoffice All Series
+	GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get All Series
-	GetAllSeries(ctx context.Context) ([]entity.Series, error)
+	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get Series by HashId
 	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get Series by Title
@@ -36,7 +38,7 @@ type SeriesRepository interface {
 	// Get Series by PublishDayId
 	GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error)
 	// Get Series by PublishDays And SeriesType
-	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string) ([]entity.Series, error)
+	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get New Episode Update Provider Series
 	GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error)
 	// Has Like Series

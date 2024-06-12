@@ -282,7 +282,7 @@ func (controller BackofficeSeriesController) GetSeriesById(ctx *fiber.Ctx) error
 
 // Get All Series
 func (controller BackofficeSeriesController) GetAllSeries(ctx *fiber.Ctx) error {
-	result, err := controller.SeriesService.GetAllSeries(ctx.Context())
+	result, err := controller.SeriesService.GetBackofficeAllSeries(ctx.Context())
 	if err != nil {
 		return err
 	}
