@@ -131,10 +131,10 @@ func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx c
 }
 
 // Get New Episode Update Provider Series
-func (seriesService *seriesServiceImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error) {
-	result, err := seriesService.SeriesRepository.GetNewEpisodeUpdateProviderSeries(ctx, provider, seriesType)
+func (seriesService *seriesServiceImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string, page, pageSize int) (model.SeriesWithPagination, error) {
+	result, err := seriesService.SeriesRepository.GetNewEpisodeUpdateProviderSeries(ctx, provider, seriesType, page, pageSize)
 	if err != nil {
-		return []entity.Series{}, nil
+		return model.SeriesWithPagination{}, nil
 	}
 	return result, nil
 

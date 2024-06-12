@@ -350,7 +350,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 	// totalCount, currentPage, nextPage, pageSize, totalPage entity
 	// totalCount: 전체 데이터 수
 	// currentPage: 현재 페이지
-	// nextPage: 다음 페이지
+	// hasNext: 다음 페이지가 있는지 여부
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1
@@ -375,7 +375,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 	return SeriesWithPagination, nil
 }
 
-func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error) {
+func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string, page, pageSize int) (model.SeriesWithPagination, error) {
 	var seriesResult []entity.Series
 	var providerResult entity.Provider
 	var seriesIds []uint
@@ -395,6 +395,9 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name = ?", provider).First(&providerResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("series_id in (?) and provider_id = ?", seriesIds, providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id in (?) and series_type = ?", seriesIds, seriesType).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Find(&seriesResult)
+
+	var totalCount int64
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Count(&totalCount)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -427,7 +430,33 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 		}
 	}
 
-	return seriesResult, nil
+	// paignation 정보 추가
+	// totalCount, currentPage, nextPage, pageSize, totalPage entity
+	// totalCount: 전체 데이터 수
+	// currentPage: 현재 페이지
+	// hasNext: 다음 페이지가 있는지 여부
+	// pageSize: 페이지당 데이터 수
+	// totalPage: 전체 페이지 수
+	totalPage := (int(totalCount) / pageSize) + 1
+	hasNext := func() bool {
+		if page >= totalPage {
+			return false
+		}
+		return true
+	}()
+
+	SeriesWithPagination := model.SeriesWithPagination{
+		Series: seriesResult,
+		Pagination: model.Pagination{
+			TotalCount:  int(totalCount),
+			CurrentPage: page,
+			HasNext:     hasNext,
+			PageSize:    pageSize,
+			TotalPage:   totalPage,
+		},
+	}
+
+	return SeriesWithPagination, nil
 }
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayId(publishDayId uint) ([]entity.Series, error) {
@@ -592,7 +621,7 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, 
 	// totalCount, currentPage, nextPage, pageSize, totalPage entity
 	// totalCount: 전체 데이터 수
 	// currentPage: 현재 페이지
-	// nextPage: 다음 페이지
+	// hasNext: 다음 페이지가 있는지 여부
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1

@@ -96,6 +96,8 @@ func (controller SeriesController) GetAllSeries(ctx *fiber.Ctx) error {
 func (controller SeriesController) GetNewEpisodeUpdateProviderSeries(ctx *fiber.Ctx) error {
 	provider := ctx.Query("provider")
 	seriesType := ctx.Query("seriesType")
+	page := ctx.QueryInt("page", 1)
+	pageSize := ctx.QueryInt("pageSize", 20)
 
 	// validate provider
 	if provider == "" {
@@ -115,7 +117,7 @@ func (controller SeriesController) GetNewEpisodeUpdateProviderSeries(ctx *fiber.
 		})
 	}
 
-	result, err := controller.SeriesService.GetNewEpisodeUpdateProviderSeries(ctx.Context(), provider, seriesType)
+	result, err := controller.SeriesService.GetNewEpisodeUpdateProviderSeries(ctx.Context(), provider, seriesType, page, pageSize)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    fiber.StatusInternalServerError,
@@ -124,22 +126,22 @@ func (controller SeriesController) GetNewEpisodeUpdateProviderSeries(ctx *fiber.
 		})
 	}
 
-	for i, v := range result {
-		result[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
+	for i, v := range result.Series {
+		result.Series[i].Thumbnail = controller.Config.Get("CLOUDINARY_URL") + v.Thumbnail
 		// series 결과 목록에서 Id 필드값을 제거
-		result[i].Id = 0
+		result.Series[i].Id = 0
 
 		// authors for
 		for j, _ := range v.Authors {
-			result[i].Authors[j].Id = 0
+			result.Series[i].Authors[j].Id = 0
 		}
 		// publishers for
 		for j, _ := range v.Publishers {
-			result[i].Publishers[j].Id = 0
+			result.Series[i].Publishers[j].Id = 0
 		}
 		// genres for
 		for j, _ := range v.Genres {
-			result[i].Genres[j].Id = 0
+			result.Series[i].Genres[j].Id = 0
 		}
 	}
 

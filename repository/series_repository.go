@@ -40,7 +40,7 @@ type SeriesRepository interface {
 	// Get Series by PublishDays And SeriesType
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get New Episode Update Provider Series
-	GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string) ([]entity.Series, error)
+	GetNewEpisodeUpdateProviderSeries(ctx context.Context, provider, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Has Like Series
 	HasLikeSeries(ctx context.Context, userId uint, seriesId uint) (bool, error)
 	// Like Series
