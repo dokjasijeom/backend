@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/dokjasijeom/backend/configuration"
+	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
@@ -24,10 +25,11 @@ func (controller CategoryController) Route(app fiber.Router) {
 
 func (controller CategoryController) GetAllCategorySeries(ctx *fiber.Ctx) error {
 	type CategoryParameter struct {
-		Genre     string   `query:"genre" default:""`
-		Providers []string `query:"providers" default:""`
-		Page      int      `query:"page" default:"1"`
-		PageSize  int      `query:"pageSize" default:"20"`
+		SeriesType entity.SeriesType `query:"seriesType" default:""`
+		Genre      string            `query:"genre" default:""`
+		Providers  []string          `query:"providers" default:""`
+		Page       int               `query:"page" default:"1"`
+		PageSize   int               `query:"pageSize" default:"20"`
 	}
 
 	var param CategoryParameter
@@ -46,7 +48,7 @@ func (controller CategoryController) GetAllCategorySeries(ctx *fiber.Ctx) error 
 		param.PageSize = 20
 	}
 
-	result, err := controller.SeriesService.GetAllCategorySeries(ctx.Context(), param.Genre, param.Providers, param.Page, param.PageSize)
+	result, err := controller.SeriesService.GetAllCategorySeries(ctx.Context(), param.SeriesType, param.Genre, param.Providers, param.Page, param.PageSize)
 	if err != nil {
 		log.Println("여기")
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{

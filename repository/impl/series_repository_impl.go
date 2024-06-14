@@ -647,34 +647,34 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, 
 }
 
 // Get All Category Series
-func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.Context, category string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
+func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
 	var seriesResult []entity.Series
 	var genreResult entity.Genre
 	var seriesIds []uint
 
-	if category != "" {
+	if genre != "" {
 		if len(providers) == 0 {
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", category).First(&genreResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", genre).First(&genreResult)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("hash_id in (?)", providers).Pluck("id", &providerIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", category).First(&genreResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", genre).First(&genreResult)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Where("series_id in (?)", seriesIds).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		}
 	} else {
 		if len(providers) == 0 {
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("hash_id in (?)", providers).Pluck("id", &providerIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		}
 	}
 
