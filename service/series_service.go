@@ -21,6 +21,8 @@ type SeriesService interface {
 	GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get all Series
 	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
+	// Get all category Series
+	GetAllCategorySeries(ctx context.Context, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get PublishDay And SeriesType
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get New Episode Update Provider Series

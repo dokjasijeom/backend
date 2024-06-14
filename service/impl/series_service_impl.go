@@ -121,6 +121,15 @@ func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context, page, 
 	return result, nil
 }
 
+// Get all category Series
+func (seriesService *seriesServiceImpl) GetAllCategorySeries(ctx context.Context, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
+	result, err := seriesService.SeriesRepository.GetAllCategorySeries(ctx, genre, providers, page, pageSize)
+	if err != nil {
+		return model.SeriesWithPagination{}, nil
+	}
+	return result, nil
+}
+
 // Get PublishDay And SeriesType
 func (seriesService *seriesServiceImpl) GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error) {
 	result, err := seriesService.SeriesRepository.GetSeriesByPublishDayAndSeriesType(ctx, publishDay, seriesType, page, pageSize)

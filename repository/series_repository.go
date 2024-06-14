@@ -21,6 +21,8 @@ type SeriesRepository interface {
 	GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error)
 	// Get All Series
 	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
+	// Get All Category Series
+	GetAllCategorySeries(ctx context.Context, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get Series by HashId
 	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get Series by Title

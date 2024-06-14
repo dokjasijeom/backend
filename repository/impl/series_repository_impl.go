@@ -646,6 +646,101 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, 
 	return SeriesWithPagination, nil
 }
 
+// Get All Category Series
+func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.Context, category string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
+	var seriesResult []entity.Series
+	var genreResult entity.Genre
+	var seriesIds []uint
+
+	if category != "" {
+		if len(providers) == 0 {
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", category).First(&genreResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+		} else {
+			//var providerResult entity.Provider
+			var providerIds []uint
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name in (?)", providers).Pluck("id", &providerIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", category).First(&genreResult)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+		}
+	} else {
+		if len(providers) == 0 {
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+		} else {
+			//var providerResult entity.Provider
+			var providerIds []uint
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name in (?)", providers).Pluck("id", &providerIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+		}
+	}
+
+	var totalCount int64
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id in (?)", seriesIds).Count(&totalCount)
+
+	// series 결과 목록에서 Id 필드값을 제거
+	for i := range seriesResult {
+		seriesResult[i].Id = 0
+
+		if seriesResult[i].SeriesType == "webnovel" {
+			seriesResult[i].DisplayTags = "#웹소설 "
+		} else {
+			seriesResult[i].DisplayTags = "#웹툰 "
+		}
+
+		for genreI := range seriesResult[i].Genres {
+			seriesResult[i].DisplayTags += "#" + seriesResult[i].Genres[genreI].Name + " "
+		}
+		seriesResult[i].TotalEpisode = uint(len(seriesResult[i].Episodes))
+		// DisplayTags 마지막 공백 제거
+		seriesResult[i].DisplayTags = seriesResult[i].DisplayTags[:len(seriesResult[i].DisplayTags)-1]
+
+		// 작가 유형 반영해서 Authors 필드에 반영
+		seriesResult[i].Authors = make([]entity.Person, 0)
+		for _, sa := range seriesResult[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
+		// 제공자 정보를 Providers 필드에 반영
+		seriesResult[i].Providers = make([]entity.Provider, 0)
+		for _, sp := range seriesResult[i].SeriesProvider {
+			sp.Provider.Link = sp.Link
+			seriesResult[i].Providers = append(seriesResult[i].Providers, sp.Provider)
+		}
+	}
+
+	// paignation 정보 추가
+	// totalCount, currentPage, nextPage, pageSize, totalPage entity
+	// totalCount: 전체 데이터 수
+	// currentPage: 현재 페이지
+	// hasNext: 다음 페이지가 있는지 여부
+	// pageSize: 페이지당 데이터 수
+	// totalPage: 전체 페이지 수
+	totalPage := (int(totalCount) / pageSize) + 1
+	hasNext := func() bool {
+		if page >= totalPage {
+			return false
+		}
+		return true
+	}()
+
+	SeriesWithPagination := model.SeriesWithPagination{
+		Series: seriesResult,
+		Pagination: model.Pagination{
+			TotalCount:  int(totalCount),
+			CurrentPage: page,
+			HasNext:     hasNext,
+			PageSize:    pageSize,
+			TotalPage:   totalPage,
+		},
+	}
+
+	return SeriesWithPagination, nil
+}
+
 // Has Like Series
 func (seriesRepository *seriesRepositoryImpl) HasLikeSeries(ctx context.Context, userId uint, seriesId uint) (bool, error) {
 	var userLikeSeries entity.UserLikeSeries
