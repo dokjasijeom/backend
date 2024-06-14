@@ -660,10 +660,10 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name in (?)", providers).Pluck("id", &providerIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("hash_id in (?)", providers).Pluck("id", &providerIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", category).First(&genreResult)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Where("series_id in (?)", seriesIds).Pluck("series_id", &seriesIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		}
 	} else {
@@ -672,7 +672,7 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name in (?)", providers).Pluck("id", &providerIds)
+			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("hash_id in (?)", providers).Pluck("id", &providerIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
 		}
