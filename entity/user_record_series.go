@@ -14,7 +14,6 @@ type UserRecordSeries struct {
 	Title              string                    `gorm:"column:title;type:varchar(255);null" json:"title,omitempty"`
 	Author             string                    `gorm:"column:author;type:varchar(255);null" json:"author,omitempty"`
 	Genre              string                    `gorm:"column:genre;type:varchar(255);null" json:"genre,omitempty"`
-	TotalEpisode       uint                      `gorm:"column:total_episode;type:int(11);null;default:0" json:"totalEpisode"`
 	SeriesType         SeriesType                `gorm:"column:series_type;type:varchar(255);null" json:"seriesType"`
 	RecordEpisodeCount uint                      `gorm:"column:record_episode_count;type:int(11);null;default:0" json:"recordEpisodeCount"`
 	RecordEpisodes     []UserRecordSeriesEpisode `json:"recordEpisodes"`

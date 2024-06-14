@@ -316,14 +316,6 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	// get episodes by series id
 	seriesEpisodes = seriesEntity.Episodes
 
-	if recordEntity.TotalEpisode < request.To {
-		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
-			Code:    fiber.StatusBadRequest,
-			Message: "total episode is less than to",
-			Data:    nil,
-		})
-	}
-
 	if isBulkCreate {
 		// 내 서재에 등록한 작품에 다중 회차를 기록할 때
 		var episodes []entity.UserRecordSeriesEpisode
