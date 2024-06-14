@@ -61,6 +61,7 @@ func main() {
 	searchController := controller.NewSearchController(&seriesService, config)
 	genreController := controller.NewGenreController(&genreService, config)
 	categoryController := controller.NewCategoryController(&seriesService, config)
+	providerController := controller.NewProviderController(&providerService, config)
 
 	backofficeSeriesController := backoffice.NewBackofficeSeriesController(&seriesService, &episodeService, config)
 	backofficeGenreController := backoffice.NewBackofficeGenreController(&genreService, config)
@@ -89,6 +90,7 @@ func main() {
 	searchController.Route(app)
 	genreController.Route(app)
 	categoryController.Route(app)
+	providerController.Route(app)
 
 	backoffice := app.Group("/backoffice", middleware.AuthenticateJWT("ADMIN", config))
 	backofficeSeriesController.Route(backoffice)
