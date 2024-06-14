@@ -355,9 +355,10 @@ func (controller SeriesController) CreateUserRecordSeries(ctx *fiber.Ctx) error 
 	}
 
 	userRecordSeries := entity.UserRecordSeries{
-		UserId:     userEntity.Id,
-		SeriesId:   series.Id,
-		SeriesType: series.SeriesType,
+		UserId:        userEntity.Id,
+		SeriesId:      series.Id,
+		ReadCompleted: false,
+		SeriesType:    series.SeriesType,
 	}
 
 	record, err := controller.UserRecordSeriesService.CreateUserRecordSeries(ctx.Context(), userRecordSeries)
@@ -492,12 +493,13 @@ func (controller SeriesController) CreateUserRecordEmptySeries(ctx *fiber.Ctx) e
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
 
 	userRecordSeries := entity.UserRecordSeries{
-		UserId:     userEntity.Id,
-		SeriesId:   0,
-		Title:      request.Title,
-		Author:     request.Author,
-		Genre:      request.Genre,
-		SeriesType: entity.SeriesType(request.SeriesType),
+		UserId:        userEntity.Id,
+		SeriesId:      0,
+		Title:         request.Title,
+		Author:        request.Author,
+		Genre:         request.Genre,
+		ReadCompleted: false,
+		SeriesType:    entity.SeriesType(request.SeriesType),
 	}
 
 	log.Println(userRecordSeries)
