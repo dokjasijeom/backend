@@ -24,7 +24,9 @@ func (upr *userProfileRepositoryImpl) UpdateUserProfile(ctx context.Context, id 
 		userProfile.UserId = id
 	}
 	userProfile.Username = request.Username
-	userProfile.Avatar = request.Avatar
+	if request.Avatar != "" {
+		userProfile.Avatar = request.Avatar
+	}
 	result := upr.DB.Save(&userProfile)
 
 	return result.Error
