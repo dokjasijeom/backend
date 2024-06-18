@@ -31,3 +31,16 @@ func (upr *userProfileRepositoryImpl) UpdateUserProfile(ctx context.Context, id 
 
 	return result.Error
 }
+
+func (upr *userProfileRepositoryImpl) DeleteUserAvatar(ctx context.Context, id uint) error {
+	// Delete user avatar
+	var userProfile entity.UserProfile
+	upr.DB.WithContext(ctx).Where("user_id = ?", id).First(&userProfile)
+	if userProfile.UserId == 0 {
+		return nil
+	}
+	userProfile.Avatar = ""
+	result := upr.DB.Save(&userProfile)
+
+	return result.Error
+}

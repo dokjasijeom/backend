@@ -46,6 +46,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Patch("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUser)
 	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
+	app.Delete("/user/avater", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
@@ -328,6 +329,57 @@ func (controller UserController) UpdateUserProvider(ctx *fiber.Ctx) error {
 		Message: "success",
 		Data:    result,
 	})
+}
+
+// Delete user avatar
+// Path: DELETE /user/avater
+// @Description Delete user avatar
+// @Summary Delete user avatar
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 204 {object} model.GeneralResponse
+// @Router /user/avater [delete]
+func (controller UserController) DeleteUserAvatar(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	if userEntity.Profile.Avatar != "" {
+		err := removeImage(ctx.Context(), userEntity.Profile.Avatar)
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+				Code:    fiber.StatusInternalServerError,
+				Message: err.Error(),
+				Data:    nil,
+			})
+		}
+		_, err = controller.UserService.DeleteUserAvatar(ctx.Context(), userEntity.Id)
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+				Code:    fiber.StatusInternalServerError,
+				Message: err.Error(),
+				Data:    nil,
+			})
+		}
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
+		Message: "success",
+		Data:    nil,
+	})
+
 }
 
 // Create user record series episode

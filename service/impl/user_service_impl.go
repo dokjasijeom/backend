@@ -94,3 +94,8 @@ func (userService *userServiceImpl) UpdateUserProviders(ctx context.Context, id 
 	err := userService.UserRepository.UpdateUserProviders(ctx, id, providerIds)
 	return err == nil, err
 }
+
+func (userService *userServiceImpl) DeleteUserAvatar(ctx context.Context, id uint) (bool, error) {
+	err := userService.UserProfileRepository.DeleteUserAvatar(ctx, id)
+	return err == nil, err
+}

@@ -21,4 +21,6 @@ type UserService interface {
 	UpdateUserPassword(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error)
 	// Update User Providers
 	UpdateUserProviders(ctx context.Context, id uint, providerIds []uint) (bool, error)
+	// Delete User Avatar
+	DeleteUserAvatar(ctx context.Context, id uint) (bool, error)
 }
