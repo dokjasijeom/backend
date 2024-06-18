@@ -14,6 +14,8 @@ type ProviderRepository interface {
 	DeleteProvider(ctx context.Context, providerId uint) error
 	// Update Provider
 	UpdateProvider(ctx context.Context, providerId uint, name string, displayName string, description string, homepageUrl string) error
+	// Get Provider by hashIds
+	GetProviderByHashIds(ctx context.Context, hashIds []string) ([]entity.Provider, error)
 	// Get Provider By Id
 	GetProviderById(ctx context.Context, providerId uint) (entity.Provider, error)
 	// Get Provider By Name

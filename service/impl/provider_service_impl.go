@@ -68,6 +68,15 @@ func (providerService *providerServiceImpl) UpdateProvider(ctx context.Context, 
 	return nil
 }
 
+func (providerService *providerServiceImpl) GetProviderByHashIds(ctx context.Context, hashIds []string) ([]entity.Provider, error) {
+	result, err := providerService.ProviderRepository.GetProviderByHashIds(ctx, hashIds)
+	if err != nil {
+		exception.PanicLogging(err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (providerService *providerServiceImpl) GetProviderById(ctx context.Context, providerId uint) (entity.Provider, error) {
 	result, err := providerService.ProviderRepository.GetProviderById(ctx, providerId)
 	if err != nil {

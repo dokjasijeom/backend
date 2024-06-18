@@ -61,6 +61,17 @@ func (providerRepository *providerRepositoryImpl) UpdateProvider(ctx context.Con
 	return nil
 }
 
+func (providerRepository *providerRepositoryImpl) GetProviderByHashIds(ctx context.Context, hashIds []string) ([]entity.Provider, error) {
+	var providerResult []entity.Provider
+	result := providerRepository.DB.WithContext(ctx).Where("hash_id IN (?)", hashIds).Find(&providerResult)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return providerResult, nil
+}
+
 func (providerRepository *providerRepositoryImpl) GetProviderById(ctx context.Context, providerId uint) (entity.Provider, error) {
 	var providerResult entity.Provider
 	result := providerRepository.DB.WithContext(ctx).Where("id = ?", providerId).Find(&providerResult)

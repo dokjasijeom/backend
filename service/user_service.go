@@ -19,4 +19,6 @@ type UserService interface {
 	UpdateUserProfile(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error)
 	// Update User Password
 	UpdateUserPassword(ctx context.Context, id uint, request model.UserUpdateRequestModel) (bool, error)
+	// Update User Providers
+	UpdateUserProviders(ctx context.Context, id uint, providerIds []uint) (bool, error)
 }

@@ -35,10 +35,13 @@ func (userRepository *userRepositoryImpl) GetAllUsers() error {
 func (userRepository *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var userResult entity.User
 	config := configuration.New()
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Find(&userResult)
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Preload("SubscribeProvider").Find(&userResult)
 	err := result.Error
 
 	userResult.Profile.Avatar = config.Get("CLOUDINARY_URL") + userResult.Profile.Avatar
+	for i := range userResult.SubscribeProvider {
+		userResult.SubscribeProvider[i].Id = 0
+	}
 
 	return userResult, err
 }
@@ -55,7 +58,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 			return ""
 		}
 	}(releaseMode)
-	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries", func(db *gorm.DB) *gorm.DB {
+	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Preload("SubscribeProvider").Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series.id desc")
 	}).Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
@@ -63,6 +66,9 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 	err := result.Error
 
 	userResult.Profile.Avatar = config.Get("CLOUDINARY_URL") + userResult.Profile.Avatar
+	for i := range userResult.SubscribeProvider {
+		userResult.SubscribeProvider[i].Id = 0
+	}
 
 	for i := range userResult.LikeSeries {
 		userResult.LikeSeries[i].Id = 0
@@ -343,6 +349,19 @@ func (userRepository *userRepositoryImpl) UpdateUserPassword(ctx context.Context
 	if result.Error != nil {
 		exception.PanicLogging(result.Error)
 		return result.Error
+	}
+	return nil
+}
+
+func (userRepository *userRepositoryImpl) UpdateUserProviders(ctx context.Context, id uint, providerIds []uint) error {
+	var userResult entity.User
+	result := userRepository.DB.WithContext(ctx).Where("id = ?", id).Find(&userResult)
+	if result.RowsAffected == 0 {
+		exception.PanicLogging("user not found")
+	}
+	userRepository.DB.WithContext(ctx).Model(&userResult).Association("SubscribeProvider").Clear()
+	for _, providerId := range providerIds {
+		userRepository.DB.WithContext(ctx).Model(&userResult).Association("SubscribeProvider").Append(&entity.Provider{Id: providerId})
 	}
 	return nil
 }

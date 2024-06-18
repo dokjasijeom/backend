@@ -89,3 +89,8 @@ func (userService *userServiceImpl) UpdateUserPassword(ctx context.Context, id u
 	err := userService.UserRepository.UpdateUserPassword(ctx, id, request.Password)
 	return err == nil, err
 }
+
+func (userService *userServiceImpl) UpdateUserProviders(ctx context.Context, id uint, providerIds []uint) (bool, error) {
+	err := userService.UserRepository.UpdateUserProviders(ctx, id, providerIds)
+	return err == nil, err
+}

@@ -36,4 +36,6 @@ type UserRepository interface {
 	DecodeHash(encodedHash string) (p *common.HashParams, salt, hash []byte, err error)
 	// Update user password
 	UpdateUserPassword(ctx context.Context, id uint, password string) error
+	// Update user providers
+	UpdateUserProviders(ctx context.Context, id uint, providerIds []uint) error
 }

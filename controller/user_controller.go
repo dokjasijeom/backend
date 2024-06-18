@@ -45,6 +45,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/users", controller.CreateUser)
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Patch("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUser)
+	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
@@ -263,6 +264,63 @@ func (controller UserController) UpdateUser(ctx *fiber.Ctx) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    result,
+	})
+}
+
+// Update user provider
+// Path: PATCH /user/provider
+// @Description Update user provider
+// @Summary Update user provider
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body UserProviderRequestModel true "Request Body"
+// @Success 200 {object} model.GeneralResponse
+// @Router /user/provider [patch]
+func (controller UserController) UpdateUserProvider(ctx *fiber.Ctx) error {
+	var request struct {
+		Providers []string `json:"providers"`
+	}
+
+	err := ctx.BodyParser(&request)
+	if err != nil {
+		return err
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	providerEntities, err := controller.ProviderService.GetProviderByHashIds(ctx.Context(), request.Providers)
+	if err != nil {
+		return err
+	}
+
+	providerIds := make([]uint, 0)
+	for _, provider := range providerEntities {
+		providerIds = append(providerIds, provider.Id)
+	}
+
+	// update user provider
+	result, err := controller.UserService.UpdateUserProviders(ctx.Context(), userEntity.Id, providerIds)
+	if err != nil {
+		return err
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
