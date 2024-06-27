@@ -9,6 +9,14 @@ import (
 type UserService interface {
 	// User Authentication
 	AuthenticateUser(ctx context.Context, email, password string) (entity.User, error)
+	// Authenticate User only email
+	AuthenticateOnlyEmail(ctx context.Context, email string) (entity.User, error)
+	// Make Password reset Token
+	MakePasswordResetToken(ctx context.Context, email string) (string, error)
+	// Get Password reset token from email
+	GetPasswordResetToken(ctx context.Context, token string) (string, error)
+	// Delete Password reset token
+	DeletePasswordResetToken(ctx context.Context, token string) error
 	// User Create
 	CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error)
 	// Get User By Email

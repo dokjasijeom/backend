@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/dokjasijeom/backend/common"
 	"github.com/dokjasijeom/backend/configuration"
@@ -22,6 +23,7 @@ import (
 	_ "image/png"
 	"io"
 	"log"
+	"net/smtp"
 	"os"
 	"strings"
 )
@@ -45,11 +47,14 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/users", controller.CreateUser)
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Patch("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUser)
+	app.Post("/user/forgot", controller.ForgotPassword)
+	app.Get("/user/reset-password", controller.ResetPassword)
 	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
 	app.Delete("/user/avater", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
+
 }
 
 // Authenticate user
@@ -610,6 +615,143 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	})
 }
 
+// Forgot password
+func (controller UserController) ForgotPassword(ctx *fiber.Ctx) error {
+	var request struct {
+		Email string `json:"email"`
+	}
+	err := ctx.BodyParser(&request)
+	if err != nil {
+		return err
+	}
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), request.Email)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	// make token
+	token, err := controller.UserService.MakePasswordResetToken(ctx.Context(), request.Email)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	mailtrap_username := os.Getenv("MAILTRAP_USERNAME")
+	mailtrap_password := os.Getenv("MAILTRAP_PASSWORD")
+	mailtrap_host := os.Getenv("MAILTRAP_HOST")
+
+	mailtrap_auth := smtp.PlainAuth("", mailtrap_username, mailtrap_password, mailtrap_host)
+
+	// mailtrap from
+	from := os.Getenv("MAILTRAP_FROM")
+	// mailtrap to
+	to := []string{request.Email}
+
+	message := []byte("To: " + request.Email + "\r\n" +
+		"From: " + from + "\r\n" +
+		"Subject: [독자시점] 로그인 매직 링크\r\n" +
+		"\r\n" +
+		"다음의 링크를 주소창에 붙여넣기 하여 로그인을 완료한 후 내 정보 페이지에서 비밀번호를 수정해주세요.: \r\n\r\n" + os.Getenv("BACKEND_HOST") + "/user/reset-password?token=" + token + "\r\n\r\n" + "감사합니다.\r\n")
+
+	smtpUrl := mailtrap_host + ":587"
+	err = smtp.SendMail(smtpUrl, mailtrap_auth, from, to, message)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    nil,
+	})
+}
+
+// Reset Password
+func (controller UserController) ResetPassword(ctx *fiber.Ctx) error {
+	token := ctx.Query("token")
+	if token == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "token is required",
+			Data:    nil,
+		})
+	}
+
+	// get email
+	email, err := controller.UserService.GetPasswordResetToken(ctx.Context(), token)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	// delete token
+	err = controller.UserService.DeletePasswordResetToken(ctx.Context(), token)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), email)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	result, _ := controller.UserService.AuthenticateOnlyEmail(ctx.Context(), email)
+	//var userRoles []map[string]interface{}
+	//for _, userRole := range result.UserRoles {
+	//	userRoles = append(userRoles, map[string]interface{}{
+	//		"role": userRole,
+	//	})
+	//}
+	// spread result.Roles key Role to array
+
+	var userRoles []string
+	for _, role := range result.Roles {
+		userRoles = append(userRoles, role.Role)
+	}
+
+	tokenJwtResult := common.GenerateToken(result.Email, result.Roles, controller.Config)
+	resultWithToken := map[string]interface{}{
+		"code":    200,
+		"message": "success",
+		"data": map[string]interface{}{
+			"token": tokenJwtResult,
+			"email": result.Email,
+			"role":  userRoles,
+		},
+	}
+
+	out, err := json.Marshal(removeNils(resultWithToken))
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	ctx.Cookie(&fiber.Cookie{Name: "DS_AUT", Value: tokenJwtResult, Path: "/"})
+	ctx.Cookie(&fiber.Cookie{Name: "DS_USER", Value: string(out), Path: "/"})
+
+	// redirect main page
+	return ctx.Redirect(os.Getenv("FRONTEND_HOST") + "/my/library")
+}
+
 // Get user record series
 // Path: GET /user/series/:id
 // @Description Get user record series
@@ -725,4 +867,20 @@ func removeImage(ctx context.Context, filePath string) error {
 	}
 
 	return nil
+}
+
+func removeNils(initialMap map[string]interface{}) map[string]interface{} {
+	withoutNils := map[string]interface{}{}
+	for key, value := range initialMap {
+		_, ok := value.(map[string]interface{})
+		if ok {
+			value = removeNils(value.(map[string]interface{}))
+			withoutNils[key] = value
+			continue
+		}
+		if value != nil {
+			withoutNils[key] = value
+		}
+	}
+	return withoutNils
 }

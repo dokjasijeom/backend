@@ -11,14 +11,15 @@ import (
 	"github.com/speps/go-hashids/v2"
 )
 
-func NewUserServiceImpl(userRepository *repository.UserRepository, userRoleRepository *repository.UserRoleRepository, userProfileRepository *repository.UserProfileRepository) service.UserService {
-	return &userServiceImpl{UserRepository: *userRepository, UserRoleRepository: *userRoleRepository, UserProfileRepository: *userProfileRepository}
+func NewUserServiceImpl(userRepository *repository.UserRepository, userRoleRepository *repository.UserRoleRepository, userProfileRepository *repository.UserProfileRepository, userPasswordResetRepository *repository.UserPasswordResetRepository) service.UserService {
+	return &userServiceImpl{UserRepository: *userRepository, UserRoleRepository: *userRoleRepository, UserProfileRepository: *userProfileRepository, UserPasswordResetRepository: *userPasswordResetRepository}
 }
 
 type userServiceImpl struct {
 	repository.UserRepository
 	repository.UserRoleRepository
 	repository.UserProfileRepository
+	repository.UserPasswordResetRepository
 }
 
 func (userService *userServiceImpl) CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error) {
@@ -65,6 +66,38 @@ func (userService *userServiceImpl) AuthenticateUser(ctx context.Context, email,
 		exception.PanicLogging("password is not matched")
 	} else {
 		return userResult, nil
+	}
+
+	return userResult, nil
+}
+
+func (userService *userServiceImpl) MakePasswordResetToken(ctx context.Context, email string) (string, error) {
+	token, err := userService.UserPasswordResetRepository.CreateUserPasswordReset(ctx, email)
+	if err != nil {
+		panic(err)
+	}
+
+	return token, nil
+}
+
+func (userService *userServiceImpl) GetPasswordResetToken(ctx context.Context, token string) (string, error) {
+	email, err := userService.UserPasswordResetRepository.GetUserPasswordResetToEmail(ctx, token)
+	if err != nil {
+		panic(err)
+	}
+
+	return email, nil
+}
+
+func (userService *userServiceImpl) DeletePasswordResetToken(ctx context.Context, token string) error {
+	err := userService.UserPasswordResetRepository.DeleteUserPasswordReset(ctx, token)
+	return err
+}
+
+func (userService *userServiceImpl) AuthenticateOnlyEmail(ctx context.Context, email string) (entity.User, error) {
+	userResult, err := userService.UserRepository.Authenticate(ctx, email)
+	if err != nil {
+		panic(err)
 	}
 
 	return userResult, nil
