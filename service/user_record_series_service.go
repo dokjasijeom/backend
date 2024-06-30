@@ -22,4 +22,6 @@ type UserRecordSeriesService interface {
 	DeleteUserRecordSeriesByUserIdAndId(ctx context.Context, userId, id uint) error
 	// Delete user record series by user id and series id
 	DeleteUserRecordSeriesByUserIdAndSeriesId(ctx context.Context, userId, seriesId uint) error
+	// Update User Record Series
+	UpdateUserRecordSeries(ctx context.Context, userId, id uint, request entity.UserRecordSeries) (entity.UserRecordSeries, error)
 }

@@ -53,6 +53,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Delete("/user/avatar", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
+	app.Patch("/user/series/record/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserRecordSeries)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
 
 }
@@ -612,6 +613,73 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 		Code:    fiber.StatusNoContent,
 		Message: "success",
 		Data:    nil,
+	})
+}
+
+func (controller UserController) UpdateUserRecordSeries(ctx *fiber.Ctx) error {
+	var request model.UserRecordSeriesUpdateModel
+
+	err := ctx.BodyParser(&request)
+	if err != nil {
+		return err
+	}
+
+	id, err := ctx.ParamsInt("id")
+	if err != nil {
+		return err
+	}
+
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, uint(id))
+	if err != nil {
+		return err
+	}
+
+	if recordEntity.Id == 0 {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "record not found",
+			Data:    nil,
+		})
+	}
+
+	if request.Title != "" {
+		recordEntity.Title = request.Title
+	}
+	if request.Author != "" {
+		recordEntity.Author = request.Author
+	}
+	if request.Genre != "" {
+		recordEntity.Genre = request.Genre
+	}
+	if request.SeriesType != "" {
+		recordEntity.SeriesType = request.SeriesType
+	}
+	recordEntity.ReadCompleted = request.ReadCompleted
+
+	// update user record series
+	result, err := controller.UserRecordSeriesService.UpdateUserRecordSeries(ctx.Context(), userEntity.Id, recordEntity.Id, recordEntity)
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    result,
 	})
 }
 

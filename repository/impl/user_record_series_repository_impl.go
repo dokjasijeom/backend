@@ -146,3 +146,9 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) DeleteUserReco
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ? AND series_id = ?", userId, seriesId).Delete(&entity.UserRecordSeries{})
 	return result.Error
 }
+
+// Update User Record Series
+func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) UpdateUserRecordSeries(ctx context.Context, userId, id uint, request entity.UserRecordSeries) (entity.UserRecordSeries, error) {
+	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("id = ? and user_id = ?", id, userId).Updates(&request)
+	return request, result.Error
+}

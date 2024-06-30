@@ -54,3 +54,8 @@ func (userRecordSeriesService *userRecordSeriesServiceImpl) DeleteUserRecordSeri
 func (userRecordSeriesService *userRecordSeriesServiceImpl) DeleteUserRecordSeriesByUserIdAndSeriesId(ctx context.Context, userId, seriesId uint) error {
 	return userRecordSeriesService.UserRecordSeriesRepository.DeleteUserRecordSeriesByUserIdAndSeriesId(ctx, userId, seriesId)
 }
+
+// Update User Record Series
+func (userRecordSeriesService *userRecordSeriesServiceImpl) UpdateUserRecordSeries(ctx context.Context, userId, id uint, request entity.UserRecordSeries) (entity.UserRecordSeries, error) {
+	return userRecordSeriesService.UserRecordSeriesRepository.UpdateUserRecordSeries(ctx, userId, id, request)
+}
