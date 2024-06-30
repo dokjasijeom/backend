@@ -354,6 +354,9 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByPublishDayAndSeriesType
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1
+	if (int(totalCount) % pageSize) == 0 {
+		totalPage = totalPage - 1
+	}
 	hasNext := func() bool {
 		if page >= totalPage {
 			return false
@@ -438,6 +441,9 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1
+	if (int(totalCount) % pageSize) == 0 {
+		totalPage = totalPage - 1
+	}
 	hasNext := func() bool {
 		if page >= totalPage {
 			return false
@@ -625,6 +631,9 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, 
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1
+	if (int(totalCount) % pageSize) == 0 {
+		totalPage = totalPage - 1
+	}
 	hasNext := func() bool {
 		if page >= totalPage {
 			return false
@@ -679,7 +688,7 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 	}
 
 	var totalCount int64
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id in (?)", seriesIds).Count(&totalCount)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Count(&totalCount)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
@@ -720,6 +729,9 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 	// pageSize: 페이지당 데이터 수
 	// totalPage: 전체 페이지 수
 	totalPage := (int(totalCount) / pageSize) + 1
+	if (int(totalCount) % pageSize) == 0 {
+		totalPage = totalPage - 1
+	}
 	hasNext := func() bool {
 		if page >= totalPage {
 			return false
