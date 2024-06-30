@@ -51,6 +51,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Get("/user/reset-password", controller.ResetPassword)
 	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
 	app.Delete("/user/avatar", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
+	app.Get("/user/series/complete-records", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserCompleteRecords)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Patch("/user/series/record/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserRecordSeries)
@@ -386,6 +387,37 @@ func (controller UserController) DeleteUserAvatar(ctx *fiber.Ctx) error {
 		Data:    nil,
 	})
 
+}
+
+func (controller UserController) GetUserCompleteRecords(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	result, err := controller.UserRecordSeriesService.GetUserCompleteRecords(ctx.Context(), userEntity.Id)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    result,
+	})
 }
 
 // Create user record series episode

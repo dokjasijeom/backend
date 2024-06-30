@@ -59,3 +59,8 @@ func (userRecordSeriesService *userRecordSeriesServiceImpl) DeleteUserRecordSeri
 func (userRecordSeriesService *userRecordSeriesServiceImpl) UpdateUserRecordSeries(ctx context.Context, userId, id uint, request entity.UserRecordSeries) (entity.UserRecordSeries, error) {
 	return userRecordSeriesService.UserRecordSeriesRepository.UpdateUserRecordSeries(ctx, userId, id, request)
 }
+
+// Get User Complete Records
+func (userRecordSeriesService *userRecordSeriesServiceImpl) GetUserCompleteRecords(ctx context.Context, userId uint) ([]entity.UserRecordSeries, error) {
+	return userRecordSeriesService.UserRecordSeriesRepository.GetUserCompleteRecords(ctx, userId)
+}
