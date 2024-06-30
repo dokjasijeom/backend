@@ -50,7 +50,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/user/forgot", controller.ForgotPassword)
 	app.Get("/user/reset-password", controller.ResetPassword)
 	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
-	app.Delete("/user/avater", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
+	app.Delete("/user/avatar", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserAvatar)
 	app.Post("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.CreateUserRecordSeriesEpisode)
 	app.Delete("/user/series/record", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUserRecordSeriesEpisode)
 	app.Get("/user/series/:id", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUserRecordSeries)
