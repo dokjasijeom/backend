@@ -76,7 +76,11 @@ func (controller UserController) AuthenticateUser(ctx *fiber.Ctx) error {
 	}
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
@@ -124,7 +128,11 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 	}
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	existUser := controller.UserService.GetUserByEmail(ctx.Context(), request.Email)
@@ -138,7 +146,11 @@ func (controller UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	_, createErr := controller.UserService.CreateUser(ctx.Context(), request.Email, request.Password, request.ComparePassword)
 	if createErr != nil {
-		return createErr
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: createErr.Error(),
+			Data:    nil,
+		})
 	}
 	result, _ := controller.UserService.AuthenticateUser(ctx.Context(), request.Email, request.Password)
 
@@ -264,13 +276,21 @@ func (controller UserController) UpdateUser(ctx *fiber.Ctx) error {
 	// update user
 	result, err := controller.UserService.UpdateUserProfile(ctx.Context(), userEntity.Id, request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	if request.Password != "" && request.PasswordConfirm != "" && request.Password == request.PasswordConfirm {
 		_, err = controller.UserService.UpdateUserPassword(ctx.Context(), userEntity.Id, request)
 		if err != nil {
-			return err
+			return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+				Code:    fiber.StatusInternalServerError,
+				Message: err.Error(),
+				Data:    nil,
+			})
 		}
 	}
 
@@ -299,7 +319,11 @@ func (controller UserController) UpdateUserProvider(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	user := ctx.Locals("user").(*jwt.Token)
@@ -317,7 +341,11 @@ func (controller UserController) UpdateUserProvider(ctx *fiber.Ctx) error {
 
 	providerEntities, err := controller.ProviderService.GetProviderByHashIds(ctx.Context(), request.Providers)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	providerIds := make([]uint, 0)
@@ -435,7 +463,11 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	var request model.UserRecordSeriesEpisodeRequestModel
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	user := ctx.Locals("user").(*jwt.Token)
@@ -446,12 +478,20 @@ func (controller UserController) CreateUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.UserRecordSeriesId)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	providerEntity, err := controller.ProviderService.GetProviderByName(ctx.Context(), request.ProviderName)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	isBulkCreate := false
@@ -598,7 +638,11 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	var request model.UserRecordSeriesEpisodeDeleteRequestModel
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	if request.UserRecordSeriesId == 0 {
@@ -624,7 +668,11 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, request.UserRecordSeriesId)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	if recordEntity.Id == 0 {
@@ -638,7 +686,11 @@ func (controller UserController) DeleteUserRecordSeriesEpisode(ctx *fiber.Ctx) e
 	// delete user record series episode
 	err = controller.UserRecordSeriesEpisodeService.DeleteUserRecordSeriesEpisodeByUserRecordSeriesEpisodeIds(ctx.Context(), request.RecordIds)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
@@ -653,12 +705,20 @@ func (controller UserController) UpdateUserRecordSeries(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	id, err := ctx.ParamsInt("id")
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	user := ctx.Locals("user").(*jwt.Token)
@@ -676,7 +736,11 @@ func (controller UserController) UpdateUserRecordSeries(ctx *fiber.Ctx) error {
 
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, uint(id))
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	if recordEntity.Id == 0 {
@@ -705,7 +769,11 @@ func (controller UserController) UpdateUserRecordSeries(ctx *fiber.Ctx) error {
 	result, err := controller.UserRecordSeriesService.UpdateUserRecordSeries(ctx.Context(), userEntity.Id, recordEntity.Id, recordEntity)
 
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(model.GeneralResponse{
@@ -722,7 +790,11 @@ func (controller UserController) ForgotPassword(ctx *fiber.Ctx) error {
 	}
 	err := ctx.BodyParser(&request)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), request.Email)
@@ -880,7 +952,11 @@ func (controller UserController) GetUserRecordSeries(ctx *fiber.Ctx) error {
 	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
 	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, uint(id))
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
 	}
 
 	if recordEntity.Id == 0 {
