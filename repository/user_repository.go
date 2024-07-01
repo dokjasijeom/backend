@@ -20,6 +20,8 @@ type UserRepository interface {
 	GetUserByEmailAndPassword(email, password string) error
 	// Create new user
 	CreateUser(email, password string) (entity.User, error)
+	// Delete User
+	DeleteUser(ctx context.Context, id uint) error
 	// Update user hash id
 	UpdateUserHashId(ctx context.Context, email string, hashId string) error
 	// Update user by email

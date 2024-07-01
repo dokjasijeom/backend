@@ -19,6 +19,8 @@ type UserService interface {
 	DeletePasswordResetToken(ctx context.Context, token string) error
 	// User Create
 	CreateUser(ctx context.Context, email, password, comparePassword string) (entity.User, error)
+	// User Delete
+	DeleteUser(ctx context.Context, id uint) (bool, error)
 	// Get User By Email
 	GetUserByEmail(ctx context.Context, email string) entity.User
 	// Get User By Email And Series

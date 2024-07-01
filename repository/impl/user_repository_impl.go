@@ -12,6 +12,7 @@ import (
 	"github.com/dokjasijeom/backend/entity"
 	"github.com/dokjasijeom/backend/exception"
 	"github.com/dokjasijeom/backend/repository"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
 	"log"
@@ -208,6 +209,30 @@ func (userRepository *userRepositoryImpl) CreateUser(email, password string) (en
 		return userResult, result.Error
 	}
 	return userResult, nil
+}
+
+func (userRepository *userRepositoryImpl) DeleteUser(ctx context.Context, id uint) error {
+	var userResult entity.User
+	result := userRepository.DB.WithContext(ctx).Where("id = ?", id).Find(&userResult)
+	if result.RowsAffected == 0 {
+		exception.PanicLogging("user not found")
+	}
+	// exist email change to uuid
+	userResult.Email = strings.Replace(uuid.New().String(), "-", "", -1)
+
+	userRepository.DB.WithContext(ctx).Save(&userResult)
+
+	err := userRepository.DB.WithContext(ctx).Model(&userResult).Association("Roles").Clear()
+	if err != nil {
+		exception.PanicLogging(err)
+		return err
+	}
+	result = userRepository.DB.WithContext(ctx).Delete(&userResult)
+	if result.Error != nil {
+		exception.PanicLogging(result.Error)
+		return result.Error
+	}
+	return nil
 }
 
 func (userRepository *userRepositoryImpl) UpdateUserHashId(ctx context.Context, email string, hashId string) error {

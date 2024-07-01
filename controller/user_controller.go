@@ -48,6 +48,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Post("/users", controller.CreateUser)
 	app.Get("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.GetUser)
 	app.Patch("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUser)
+	app.Delete("/user", middleware.AuthenticateJWT("ANY", controller.Config), controller.DeleteUser)
 	app.Post("/user/forgot", controller.ForgotPassword)
 	app.Get("/user/reset-password", controller.ResetPassword)
 	app.Patch("/user/provider", middleware.AuthenticateJWT("ANY", controller.Config), controller.UpdateUserProvider)
@@ -299,6 +300,37 @@ func (controller UserController) UpdateUser(ctx *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "success",
 		Data:    result,
+	})
+}
+
+// Delete user
+func (controller UserController) DeleteUser(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userEmail := claims["email"].(string)
+
+	userEntity := controller.UserService.GetUserByEmail(ctx.Context(), userEmail)
+	if userEntity.Email == "" {
+		return ctx.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "user not found",
+			Data:    nil,
+		})
+	}
+
+	result, err := controller.UserService.DeleteUser(ctx.Context(), userEntity.Id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusNoContent).JSON(model.GeneralResponse{
+		Code:    fiber.StatusNoContent,
+		Message: "success",
+		Data:    nil,
 	})
 }
 

@@ -52,6 +52,11 @@ func (userService *userServiceImpl) CreateUser(ctx context.Context, email, passw
 	return result, nil
 }
 
+func (userService *userServiceImpl) DeleteUser(ctx context.Context, id uint) (bool, error) {
+	err := userService.UserRepository.DeleteUser(ctx, id)
+	return err == nil, err
+}
+
 func (userService *userServiceImpl) AuthenticateUser(ctx context.Context, email, password string) (entity.User, error) {
 	userResult, err := userService.UserRepository.Authenticate(ctx, email)
 	if err != nil {
