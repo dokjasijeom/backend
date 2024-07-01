@@ -156,6 +156,11 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) UpdateUserReco
 // Get User Complete Records
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) GetUserCompleteRecords(ctx context.Context, userId uint) ([]entity.UserRecordSeries, error) {
 	var userRecordSeries []entity.UserRecordSeries
-	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ?", userId).Where("read_completed = ?", true).Preload("RecordEpisodes").Preload("Genres").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Publishers").Find(&userRecordSeries)
+	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("user_id = ?", userId).Where("read_completed = ?", true).Preload("RecordEpisodes").Find(&userRecordSeries)
+
+	for i, _ := range userRecordSeries {
+		series, _ := userRecordSeriesRepository.GetUserRecordSeriesItem(ctx, userRecordSeries[i].SeriesId)
+		userRecordSeries[i].Series = series
+	}
 	return userRecordSeries, result.Error
 }
