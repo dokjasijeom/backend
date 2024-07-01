@@ -318,7 +318,7 @@ func (controller UserController) DeleteUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	result, err := controller.UserService.DeleteUser(ctx.Context(), userEntity.Id)
+	_, err := controller.UserService.DeleteUser(ctx.Context(), userEntity.Id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    fiber.StatusInternalServerError,
