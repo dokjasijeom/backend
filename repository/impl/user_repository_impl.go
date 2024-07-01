@@ -65,7 +65,10 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 	}).Find(&userResult)
 	err := result.Error
 
-	userResult.Profile.Avatar = config.Get("CLOUDINARY_URL") + userResult.Profile.Avatar
+	if userResult.Profile.Avatar != "" {
+		userResult.Profile.Avatar = config.Get("CLOUDINARY_URL") + userResult.Profile.Avatar
+	}
+
 	for i := range userResult.SubscribeProvider {
 		userResult.SubscribeProvider[i].Id = 0
 	}
