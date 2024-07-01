@@ -20,6 +20,7 @@ import (
 	"image"
 	_ "image/gif"
 	"image/jpeg"
+	"image/png"
 	_ "image/png"
 	"io"
 	"log"
@@ -975,12 +976,16 @@ func (controller UserController) GetUserRecordSeries(ctx *fiber.Ctx) error {
 }
 
 func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality int) (string, error) {
-	filename := strings.Replace(uuid.New().String(), "-", "", -1) + ".jpg"
+	filename := strings.Replace(uuid.New().String(), "-", "", -1)
+	newFileExt := ".jpg"
 	var img image.Image
 	var err error
 
 	if fileExt == ".webp" {
 		img, err = webp.Decode(bytes.NewReader(buffer))
+	} else if fileExt == ".png" {
+		img, err = png.Decode(bytes.NewReader(buffer))
+		newFileExt = ".png"
 	} else {
 		img, _, err = image.Decode(bytes.NewReader(buffer))
 	}
@@ -989,7 +994,11 @@ func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality
 		exception.PanicLogging(err)
 	}
 	var jpegBuffer bytes.Buffer
-	err = jpeg.Encode(&jpegBuffer, img, &jpeg.Options{Quality: quality})
+	if fileExt == ".png" {
+		err = png.Encode(&jpegBuffer, img)
+	} else {
+		err = jpeg.Encode(&jpegBuffer, img, &jpeg.Options{Quality: quality})
+	}
 	if err != nil {
 		exception.PanicLogging(err)
 	}
@@ -1008,7 +1017,9 @@ func imageProcessing(ctx context.Context, fileExt string, buffer []byte, quality
 		exception.PanicLogging(err)
 	}
 
-	filenameWithoutExt := strings.TrimSuffix(filename, ".jpg")
+	filename = filename + newFileExt
+
+	filenameWithoutExt := strings.TrimSuffix(filename, newFileExt)
 
 	uploadResult, err := cld.Upload.Upload(ctx, f.Name(), uploader.UploadParams{
 		ResourceType: "image",
