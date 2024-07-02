@@ -61,11 +61,11 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 	}(releaseMode)
 	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Preload("SubscribeProvider").Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series.id desc")
-	}).Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
+	}).Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.Episodes").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).Preload("CompleteRecordSeries", func(db *gorm.DB) *gorm.DB {
 		return db.Where(tablePrefix+"user_record_series.read_completed = ?", true).Order(tablePrefix + "user_record_series.id desc")
-	}).Preload("CompleteRecordSeries.Series").Preload("CompleteRecordSeries.Series.Genres").Preload("CompleteRecordSeries.Series.SeriesAuthors.Person").Preload("CompleteRecordSeries.Series.SeriesProvider.Provider").Preload("CompleteRecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
+	}).Preload("CompleteRecordSeries.Series").Preload("CompleteRecordSeries.Series.Genres").Preload("CompleteRecordSeries.Series.Episodes").Preload("CompleteRecordSeries.Series.SeriesAuthors.Person").Preload("CompleteRecordSeries.Series.SeriesProvider.Provider").Preload("CompleteRecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).Find(&userResult)
 
@@ -181,8 +181,11 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 				userResult.RecordSeries[i].Series.Publishers[j].Series = nil
 			}
 
+			userResult.RecordSeries[i].TotalEpisode = userResult.RecordSeries[i].Series.TotalEpisode
+
 			userResult.RecordSeries[i].Series.Thumbnail = config.Get("CLOUDINARY_URL") + userResult.RecordSeries[i].Series.Thumbnail
 		} else {
+			userResult.RecordSeries[i].TotalEpisode = uint(len(userResult.RecordSeries[i].RecordEpisodes))
 			userResult.RecordSeries[i].Series = nil
 		}
 	}
@@ -240,9 +243,11 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 				userResult.CompleteRecordSeries[i].Series.Publishers[j].HomepageUrl = ""
 				userResult.CompleteRecordSeries[i].Series.Publishers[j].Series = nil
 			}
+			userResult.CompleteRecordSeries[i].TotalEpisode = userResult.CompleteRecordSeries[i].Series.TotalEpisode
 
 			userResult.CompleteRecordSeries[i].Series.Thumbnail = config.Get("CLOUDINARY_URL") + userResult.CompleteRecordSeries[i].Series.Thumbnail
 		} else {
+			userResult.CompleteRecordSeries[i].TotalEpisode = uint(len(userResult.CompleteRecordSeries[i].RecordEpisodes))
 			userResult.CompleteRecordSeries[i].Series = nil
 		}
 	}

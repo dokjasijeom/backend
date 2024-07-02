@@ -19,6 +19,7 @@ type UserRecordSeries struct {
 	RecordEpisodeCount uint                      `gorm:"column:record_episode_count;type:int(11);null;default:0" json:"recordEpisodeCount"`
 	RecordEpisodes     []UserRecordSeriesEpisode `json:"recordEpisodes"`
 	RecordProviders    []string                  `gorm:"-" json:"recordProviders"`
+	TotalEpisode       uint                      `json:"totalEpisode" default:"0"`
 	CreatedAt          time.Time                 `json:"-"`
 	DeletedAt          gorm.DeletedAt            `json:"-"`
 }
