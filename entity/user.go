@@ -32,6 +32,17 @@ func (User) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (User) BeforeDelete(tx *gorm.DB) (err error) {
+func (user *User) BeforeDelete(tx *gorm.DB) (err error) {
+	// delete roles
+	// delete like series
+	// delete subscribe provider
+	// delete record series
+	// delete profile
+	tx.Model(&user).Association("Roles").Clear()
+	tx.Model(&user).Association("LikeSeries").Clear()
+	tx.Model(&user).Association("SubscribeProvider").Clear()
+	tx.Model(&user).Association("RecordSeries").Clear()
+	tx.Model(&user).Association("Profile").Clear()
+
 	return nil
 }
