@@ -68,6 +68,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 	}).Preload("CompleteRecordSeries.Series").Preload("CompleteRecordSeries.Series.Genres").Preload("CompleteRecordSeries.Series.SeriesAuthors.Person").Preload("CompleteRecordSeries.Series.SeriesProvider.Provider").Preload("CompleteRecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).Find(&userResult)
+
 	err := result.Error
 
 	if userResult.Profile.Avatar != "" {
@@ -240,7 +241,7 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 				userResult.CompleteRecordSeries[i].Series.Publishers[j].Series = nil
 			}
 
-			userResult.CompleteRecordSeries[i].Series.Thumbnail = config.Get("CLOUDINARY_URL") + userResult.RecordSeries[i].Series.Thumbnail
+			userResult.CompleteRecordSeries[i].Series.Thumbnail = config.Get("CLOUDINARY_URL") + userResult.CompleteRecordSeries[i].Series.Thumbnail
 		} else {
 			userResult.CompleteRecordSeries[i].Series = nil
 		}
