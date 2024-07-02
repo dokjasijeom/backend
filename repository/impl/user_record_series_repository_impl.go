@@ -150,6 +150,7 @@ func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) DeleteUserReco
 // Update User Record Series
 func (userRecordSeriesRepository *userRecordSeriesRepositoryImpl) UpdateUserRecordSeries(ctx context.Context, userId, id uint, request entity.UserRecordSeries) (entity.UserRecordSeries, error) {
 	result := userRecordSeriesRepository.DB.WithContext(ctx).Where("id = ? and user_id = ?", id, userId).Updates(&request)
+	userRecordSeriesRepository.DB.WithContext(ctx).Model(&request).Updates(map[string]interface{}{"read_completed": request.ReadCompleted})
 	return request, result.Error
 }
 

@@ -767,7 +767,7 @@ func (controller UserController) UpdateUserRecordSeries(ctx *fiber.Ctx) error {
 		})
 	}
 
-	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesByUserIdAndId(ctx.Context(), userEntity.Id, uint(id))
+	recordEntity, err := controller.UserRecordSeriesService.GetUserRecordSeriesById(ctx.Context(), uint(id))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Code:    fiber.StatusBadRequest,
