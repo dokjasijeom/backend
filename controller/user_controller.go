@@ -952,9 +952,10 @@ func (controller UserController) ResetPassword(ctx *fiber.Ctx) error {
 
 	ctx.Cookie(&fiber.Cookie{Name: "DS_AUT", Value: tokenJwtResult, Path: "/", Domain: os.Getenv("COOKIE_DOMAIN")})
 	ctx.Cookie(&fiber.Cookie{Name: "DS_USER", Value: string(out), Path: "/", Domain: os.Getenv("COOKIE_DOMAIN")})
+	ctx.Cookie(&fiber.Cookie{Name: "isForgotPassword", Value: "true", Path: "/", Domain: os.Getenv("COOKIE_DOMAIN")})
 
 	// redirect main page
-	return ctx.Redirect(os.Getenv("FRONTEND_HOST") + "/my/library")
+	return ctx.Redirect(os.Getenv("FRONTEND_HOST") + "/my/profile")
 }
 
 // Get user record series
