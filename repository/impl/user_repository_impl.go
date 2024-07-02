@@ -63,6 +63,10 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 		return db.Order(tablePrefix + "user_record_series.id desc")
 	}).Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
 		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
+	}).Preload("CompleteRecordSeries", func(db *gorm.DB) *gorm.DB {
+		return db.Where(tablePrefix+"user_record_series.read_completed = ?", true).Order(tablePrefix + "user_record_series.id desc")
+	}).Preload("CompleteRecordSeries.Series").Preload("CompleteRecordSeries.Series.Genres").Preload("CompleteRecordSeries.Series.SeriesAuthors.Person").Preload("CompleteRecordSeries.Series.SeriesProvider.Provider").Preload("CompleteRecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
+		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).Find(&userResult)
 	err := result.Error
 
@@ -182,6 +186,66 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 		}
 	}
 	userResult.RecordSeriesCount = uint(len(userResult.RecordSeries))
+
+	for i := range userResult.CompleteRecordSeries {
+		var recordProviders []string
+		for _, rEpisode := range userResult.CompleteRecordSeries[i].RecordEpisodes {
+			if !slices.Contains(recordProviders, rEpisode.ProviderName) {
+				recordProviders = append(recordProviders, rEpisode.ProviderName)
+			}
+		}
+		userResult.CompleteRecordSeries[i].RecordProviders = recordProviders
+
+		if userResult.CompleteRecordSeries[i].SeriesId != 0 {
+			userResult.CompleteRecordSeries[i].Series.Id = 0
+
+			if userResult.CompleteRecordSeries[i].Series.SeriesType == "webnovel" {
+				userResult.CompleteRecordSeries[i].Series.DisplayTags = "#웹소설 "
+			} else {
+				userResult.CompleteRecordSeries[i].Series.DisplayTags = "#웹툰 "
+			}
+
+			for genreI := range userResult.CompleteRecordSeries[i].Series.Genres {
+				userResult.CompleteRecordSeries[i].Series.Genres[genreI].Id = 0
+				userResult.CompleteRecordSeries[i].Series.DisplayTags += "#" + userResult.CompleteRecordSeries[i].Series.Genres[genreI].Name + " "
+			}
+			userResult.CompleteRecordSeries[i].Series.TotalEpisode = uint(len(userResult.CompleteRecordSeries[i].Series.Episodes))
+			userResult.CompleteRecordSeries[i].Series.DisplayTags = userResult.CompleteRecordSeries[i].Series.DisplayTags[:len(userResult.CompleteRecordSeries[i].Series.DisplayTags)-1]
+
+			// 작가 유형 반영해서 Authors 필드에 반영
+			userResult.CompleteRecordSeries[i].Series.Authors = make([]entity.Person, 0)
+			for _, sa := range userResult.CompleteRecordSeries[i].Series.SeriesAuthors {
+				sa.Person.Id = 0
+				sa.Person.PersonType = sa.PersonType
+				userResult.CompleteRecordSeries[i].Series.Authors = append(userResult.CompleteRecordSeries[i].Series.Authors, sa.Person)
+			}
+			// 제공자 정보를 Providers 필드에 반영
+			userResult.CompleteRecordSeries[i].Series.Providers = make([]entity.Provider, 0)
+			for _, sp := range userResult.CompleteRecordSeries[i].Series.SeriesProvider {
+				sp.Provider.Link = sp.Link
+				sp.Provider.Id = 0
+				userResult.CompleteRecordSeries[i].Series.Providers = append(userResult.CompleteRecordSeries[i].Series.Providers, sp.Provider)
+			}
+
+			// publishDays remove id, Displayorder
+			for j, _ := range userResult.CompleteRecordSeries[i].Series.PublishDays {
+				userResult.CompleteRecordSeries[i].Series.PublishDays[j].Id = 0
+				userResult.CompleteRecordSeries[i].Series.PublishDays[j].DisplayOrder = 0
+			}
+			// publishers remove field id, description, homepageurl, series
+			for j, _ := range userResult.CompleteRecordSeries[i].Series.Publishers {
+				userResult.CompleteRecordSeries[i].Series.Publishers[j].Id = 0
+				userResult.CompleteRecordSeries[i].Series.Publishers[j].Description = ""
+				userResult.CompleteRecordSeries[i].Series.Publishers[j].HomepageUrl = ""
+				userResult.CompleteRecordSeries[i].Series.Publishers[j].Series = nil
+			}
+
+			userResult.CompleteRecordSeries[i].Series.Thumbnail = config.Get("CLOUDINARY_URL") + userResult.RecordSeries[i].Series.Thumbnail
+		} else {
+			userResult.CompleteRecordSeries[i].Series = nil
+		}
+	}
+	userResult.CompleteRecordSeriesCount = uint(len(userResult.CompleteRecordSeries))
 
 	return userResult, err
 }
