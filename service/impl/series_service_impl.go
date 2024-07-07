@@ -122,8 +122,8 @@ func (seriesService *seriesServiceImpl) GetAllSeries(ctx context.Context, page, 
 }
 
 // Get all category Series
-func (seriesService *seriesServiceImpl) GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
-	result, err := seriesService.SeriesRepository.GetAllCategorySeries(ctx, seriesType, genre, providers, page, pageSize)
+func (seriesService *seriesServiceImpl) GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, sort, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
+	result, err := seriesService.SeriesRepository.GetAllCategorySeries(ctx, seriesType, sort, genre, providers, page, pageSize)
 	if err != nil {
 		return model.SeriesWithPagination{}, nil
 	}

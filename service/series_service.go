@@ -22,7 +22,7 @@ type SeriesService interface {
 	// Get all Series
 	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get all category Series
-	GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
+	GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, sort, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get PublishDay And SeriesType
 	GetSeriesByPublishDayAndSeriesType(ctx context.Context, publishDay, seriesType string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get New Episode Update Provider Series

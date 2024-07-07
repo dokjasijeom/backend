@@ -22,7 +22,7 @@ type SeriesRepository interface {
 	// Get All Series
 	GetAllSeries(ctx context.Context, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get All Category Series
-	GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
+	GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, sort, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error)
 	// Get Series by HashId
 	GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error)
 	// Get Series by Title

@@ -6,7 +6,6 @@ import (
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/service"
 	"github.com/gofiber/fiber/v2"
-	"log"
 )
 
 func NewCategoryController(seriesService *service.SeriesService, config configuration.Config) *CategoryController {
@@ -26,6 +25,7 @@ func (controller CategoryController) Route(app fiber.Router) {
 func (controller CategoryController) GetAllCategorySeries(ctx *fiber.Ctx) error {
 	type CategoryParameter struct {
 		SeriesType entity.SeriesType `query:"seriesType" default:""`
+		Sort       string            `query:"sort" default:"popular" validate:"oneof=popular like pick"` //
 		Genre      string            `query:"genre" default:""`
 		Providers  []string          `query:"providers" default:""`
 		Page       int               `query:"page" default:"1"`
@@ -41,6 +41,13 @@ func (controller CategoryController) GetAllCategorySeries(ctx *fiber.Ctx) error 
 		})
 	}
 
+	if param.SeriesType == "" {
+		param.SeriesType = "webnovel"
+	}
+	if param.Sort == "" {
+		param.Sort = "popular"
+	}
+
 	if param.Page < 1 {
 		param.Page = 1
 	}
@@ -48,9 +55,8 @@ func (controller CategoryController) GetAllCategorySeries(ctx *fiber.Ctx) error 
 		param.PageSize = 20
 	}
 
-	result, err := controller.SeriesService.GetAllCategorySeries(ctx.Context(), param.SeriesType, param.Genre, param.Providers, param.Page, param.PageSize)
+	result, err := controller.SeriesService.GetAllCategorySeries(ctx.Context(), param.SeriesType, param.Sort, param.Genre, param.Providers, param.Page, param.PageSize)
 	if err != nil {
-		log.Println("여기")
 		return ctx.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    fiber.StatusInternalServerError,
 			Message: err.Error(),

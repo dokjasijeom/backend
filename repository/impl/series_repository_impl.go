@@ -8,6 +8,7 @@ import (
 	"github.com/dokjasijeom/backend/model"
 	"github.com/dokjasijeom/backend/repository"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log"
 	"time"
 )
@@ -656,16 +657,37 @@ func (seriesRepository *seriesRepositoryImpl) GetAllSeries(ctx context.Context, 
 }
 
 // Get All Category Series
-func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
+func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.Context, seriesType entity.SeriesType, sort, genre string, providers []string, page, pageSize int) (model.SeriesWithPagination, error) {
 	var seriesResult []entity.Series
 	var genreResult entity.Genre
 	var seriesIds []uint
+
+	seriesDB := seriesRepository.DB.Debug().WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes")
+
+	if sort == "popular" {
+		seriesDB = seriesDB.Order("view_count desc")
+	} else if sort == "like" {
+		seriesDB = seriesDB.Order("like_count desc")
+	} else if sort == "pick" {
+		var SortPicks []struct {
+			SeriesId uint
+			Total    uint
+		}
+		seriesRepository.DB.WithContext(ctx).Model(&entity.UserRecordSeries{}).Select("series_id, count(series_id) as total").Group("series_id").Order("total desc").Scan(&SortPicks)
+		var sortSeriesId []uint
+		for _, pick := range SortPicks {
+			sortSeriesId = append(sortSeriesId, pick.SeriesId)
+		}
+		seriesDB = seriesDB.Clauses(clause.OrderBy{
+			Expression: clause.Expr{SQL: "FIELD(id, ?)", Vars: []interface{}{sortSeriesId}, WithoutParentheses: true},
+		})
+	}
 
 	if genre != "" {
 		if len(providers) == 0 {
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", genre).First(&genreResult)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesDB.Where("id in (?)", seriesIds).Find(&seriesResult)
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
@@ -673,22 +695,29 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Genre{}).Where("hash_id = ?", genre).First(&genreResult)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesGenre{}).Where("genre_id = ?", genreResult.Id).Pluck("series_id", &seriesIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Where("series_id in (?)", seriesIds).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			//seriesRepository.DB.Debug().WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesDB.Where("id in (?)", seriesIds).Find(&seriesResult)
 		}
 	} else {
 		if len(providers) == 0 {
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			//seriesRepository.DB.Debug().WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesDB.Find(&seriesResult)
 		} else {
 			//var providerResult entity.Provider
 			var providerIds []uint
 			seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("hash_id in (?)", providers).Pluck("id", &providerIds)
 			seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id in (?)", providerIds).Pluck("series_id", &seriesIds)
-			seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			//seriesRepository.DB.Debug().WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?)", seriesIds).Where("series_type = ?", seriesType).Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("SeriesProvider.Provider").Preload("Episodes").Find(&seriesResult)
+			seriesDB.Where("id in (?)", seriesIds).Find(&seriesResult)
 		}
 	}
 
 	var totalCount int64
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Count(&totalCount)
+	seriesCount := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType)
+	if len(seriesIds) > 0 {
+		seriesCount = seriesCount.Where("id in (?)", seriesIds)
+	}
+	seriesCount.Count(&totalCount)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
