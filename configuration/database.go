@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 	"log"
 	"os"
 )
@@ -17,20 +18,26 @@ func ConnectDatabase() *gorm.DB {
 	// Load connection string from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("failed to load env", err)
+		//log.Fatal("failed to load env", err)
 	}
 
 	releaseMode := os.Getenv("RELEASE_MODE")
+	log.Println("releaseMode: ", releaseMode)
 
-	dsn := func(releaseMode string) string {
+	dsn := os.Getenv("DSN")
+
+	tablePrefix := func(releaseMode string) string {
 		if releaseMode == "development" {
-			return os.Getenv("DEV_DSN")
+			return "dev_"
 		} else {
-			return os.Getenv("MAIN_DSN")
+			return ""
 		}
 	}(releaseMode)
 
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix: tablePrefix,
+		},
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
@@ -40,6 +47,26 @@ func ConnectDatabase() *gorm.DB {
 	database.AutoMigrate(&entity.Role{})
 	database.AutoMigrate(&entity.UserRole{})
 	database.AutoMigrate(&entity.User{})
+	database.AutoMigrate(&entity.Publisher{})
+	database.AutoMigrate(&entity.PublishDay{})
+	database.AutoMigrate(&entity.Genre{})
+	database.AutoMigrate(&entity.Provider{})
+	database.AutoMigrate(&entity.Person{})
+	database.AutoMigrate(&entity.Series{})
+	database.AutoMigrate(&entity.Episode{})
+	database.AutoMigrate(&entity.SeriesPublisher{})
+	database.AutoMigrate(&entity.SeriesAuthor{})
+	database.AutoMigrate(&entity.SeriesGenre{})
+	database.AutoMigrate(&entity.SeriesPublishDay{})
+	database.AutoMigrate(&entity.SeriesProvider{})
+	database.AutoMigrate(&entity.SeriesDailyView{})
+	database.AutoMigrate(&entity.UserLikeSeries{})
+	database.AutoMigrate(&entity.UserLikeSeriesCount{})
+	database.AutoMigrate(&entity.UserRecordSeries{})
+	database.AutoMigrate(&entity.UserRecordSeriesEpisode{})
+	database.AutoMigrate(&entity.UserProfile{})
+	database.AutoMigrate(&entity.UserProvider{})
+	database.AutoMigrate(&entity.UserPasswordReset{})
 
 	return database
 }
@@ -75,4 +102,17 @@ func TestDataBase() {
 	log.Println("Connected to PlanetScale")
 
 	defer db.Close()
+}
+
+func Paginate(page int, pageSize int) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if page == 0 {
+			page = 1
+		}
+		if pageSize == 0 {
+			pageSize = 20
+		}
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }
