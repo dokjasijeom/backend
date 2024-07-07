@@ -2,7 +2,7 @@ name: Deploy to AWS Lightsail
 on:
   push:
     branches:
-      - develop
+      - main
 jobs:
   build:
     name: Docker Image Build
