@@ -398,7 +398,7 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesEpisode{}).Where("episode_id in (?)", episodeIds).Distinct().Pluck("series_id", &seriesIds)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name = ?", provider).First(&providerResult)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("series_id in (?) and provider_id = ?", seriesIds, providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("id in (?) and series_type = ?", seriesIds, seriesType).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Find(&seriesResult)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?) and series_type = ?", seriesIds, seriesType).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Find(&seriesResult)
 
 	var totalCount int64
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType).Where("id in (?)", seriesIds).Count(&totalCount)
