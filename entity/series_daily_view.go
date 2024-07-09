@@ -15,3 +15,12 @@ type SeriesDailyView struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+func (sdv *SeriesDailyView) AfterCreate(tx *gorm.DB) (err error) {
+	var series Series
+	tx.Model(&Series{}).Where("id = ?", sdv.SeriesId).First(&series)
+	series.ViewCount++
+	tx.Updates(&series)
+
+	return nil
+}
