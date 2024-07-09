@@ -25,6 +25,7 @@ type seriesRepositoryImpl struct {
 func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series, model model.SeriesModel) (entity.Series, error) {
 	var seriesResult entity.Series
 	seriesResult = series
+	var authorResult entity.SeriesAuthor
 	var providerResult entity.SeriesProvider
 
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Create(&seriesResult)
@@ -74,7 +75,8 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 
 	if model.AuthorIds != nil {
 		for _, authorId := range model.AuthorIds {
-			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: authorId, PersonType: "author"})
+			log.Println("작가 아이디: ", authorId)
+			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: authorId, PersonType: "author"})
 			if result.Error != nil {
 				log.Println("작가 연결 실패")
 				exception.PanicLogging(result.Error)
@@ -84,7 +86,8 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 
 	if model.IllustratorIds != nil {
 		for _, illustratorId := range model.IllustratorIds {
-			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: illustratorId, PersonType: "illustrator"})
+			log.Println("그림 작가 아이디: ", illustratorId)
+			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: illustratorId, PersonType: "illustrator"})
 			if result.Error != nil {
 				log.Println("그림 작가 연결 실패")
 				exception.PanicLogging(result.Error)
@@ -94,7 +97,8 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 
 	if model.OriginalAuthorIds != nil {
 		for _, originalAuthorId := range model.OriginalAuthorIds {
-			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: originalAuthorId, PersonType: "original_author"})
+			log.Println("원작 작가 아이디: ", originalAuthorId)
+			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: originalAuthorId, PersonType: "original_author"})
 			if result.Error != nil {
 				log.Println("원작 작가 연결 실패")
 				exception.PanicLogging(result.Error)
@@ -180,11 +184,13 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 
 	if len(seriesResult.SeriesAuthors) > 0 {
 		for _, author := range seriesResult.SeriesAuthors {
+			log.Println("기존 연결 작가 아이디: ", author.Id, "삭제")
 			seriesRepository.DB.WithContext(ctx).Model(&authorResult).Where("id = ?", author.Id).Delete(&entity.SeriesAuthor{})
 		}
 	}
 
 	for _, authorId := range model.AuthorIds {
+		log.Println("작가 아이디: ", authorId)
 		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: authorId, PersonType: "author"})
 		if result.Error != nil {
 			log.Println("작가 연결 실패")
@@ -193,6 +199,7 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 	}
 
 	for _, illustratorId := range model.IllustratorIds {
+		log.Println("그림 작가 아이디: ", illustratorId)
 		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: illustratorId, PersonType: "illustrator"})
 		if result.Error != nil {
 			log.Println("그림 작가 연결 실패")
@@ -201,6 +208,7 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 	}
 
 	for _, originalAuthorId := range model.OriginalAuthorIds {
+		log.Println("원작 작가 아이디: ", originalAuthorId)
 		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: originalAuthorId, PersonType: "original_author"})
 		if result.Error != nil {
 			log.Println("원작 작가 연결 실패")
