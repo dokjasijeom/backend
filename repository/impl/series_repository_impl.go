@@ -25,7 +25,6 @@ type seriesRepositoryImpl struct {
 func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, series entity.Series, model model.SeriesModel) (entity.Series, error) {
 	var seriesResult entity.Series
 	seriesResult = series
-	var authorResult entity.SeriesAuthor
 	var providerResult entity.SeriesProvider
 
 	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Create(&seriesResult)
@@ -73,30 +72,33 @@ func (seriesRepository *seriesRepositoryImpl) CreateSeries(ctx context.Context, 
 		}
 	}
 
-	if model.AuthorId != 0 {
-		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.AuthorId, PersonType: "author"})
-
-		if result.Error != nil {
-			log.Println("작가 연결 실패")
-			exception.PanicLogging(result.Error)
+	if model.AuthorIds != nil {
+		for _, authorId := range model.AuthorIds {
+			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: authorId, PersonType: "author"})
+			if result.Error != nil {
+				log.Println("작가 연결 실패")
+				exception.PanicLogging(result.Error)
+			}
 		}
 	}
 
-	if model.IllustratorId != 0 {
-		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.IllustratorId, PersonType: "illustrator"})
-
-		if result.Error != nil {
-			log.Println("그림 작가 연결 실패")
-			exception.PanicLogging(result.Error)
+	if model.IllustratorIds != nil {
+		for _, illustratorId := range model.IllustratorIds {
+			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: illustratorId, PersonType: "illustrator"})
+			if result.Error != nil {
+				log.Println("그림 작가 연결 실패")
+				exception.PanicLogging(result.Error)
+			}
 		}
 	}
 
-	if model.OriginalAuthorId != 0 {
-		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.OriginalAuthorId, PersonType: "original_author"})
-
-		if result.Error != nil {
-			log.Println("원작 작가 연결 실패")
-			exception.PanicLogging(result.Error)
+	if model.OriginalAuthorIds != nil {
+		for _, originalAuthorId := range model.OriginalAuthorIds {
+			result := seriesRepository.DB.WithContext(ctx).Model(&seriesResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: originalAuthorId, PersonType: "original_author"})
+			if result.Error != nil {
+				log.Println("원작 작가 연결 실패")
+				exception.PanicLogging(result.Error)
+			}
 		}
 	}
 
@@ -178,43 +180,31 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 
 	if len(seriesResult.SeriesAuthors) > 0 {
 		for _, author := range seriesResult.SeriesAuthors {
-			if model.AuthorId != 0 && author.PersonId != model.AuthorId {
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Where("id = ?", author.Id).Delete(&entity.SeriesAuthor{})
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.AuthorId, PersonType: "author"})
-			}
-			if model.IllustratorId != 0 && author.PersonId != model.IllustratorId {
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Where("id = ?", author.Id).Delete(&entity.SeriesAuthor{})
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.IllustratorId, PersonType: "illustrator"})
-			}
-
-			if model.OriginalAuthorId != 0 && author.PersonId != model.OriginalAuthorId {
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Where("id = ?", author.Id).Delete(&entity.SeriesAuthor{})
-				seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.OriginalAuthorId, PersonType: "original_author"})
-			}
+			seriesRepository.DB.WithContext(ctx).Model(&authorResult).Where("id = ?", author.Id).Delete(&entity.SeriesAuthor{})
 		}
-	} else {
-		if model.AuthorId != 0 {
-			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.AuthorId, PersonType: "author"})
-			if result.Error != nil {
-				log.Println("작가 연결 실패")
-				exception.PanicLogging(result.Error)
-			}
-		}
+	}
 
-		if model.IllustratorId != 0 {
-			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.IllustratorId, PersonType: "illustrator"})
-			if result.Error != nil {
-				log.Println("그림 작가 연결 실패")
-				exception.PanicLogging(result.Error)
-			}
+	for _, authorId := range model.AuthorIds {
+		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: authorId, PersonType: "author"})
+		if result.Error != nil {
+			log.Println("작가 연결 실패")
+			exception.PanicLogging(result.Error)
 		}
+	}
 
-		if model.OriginalAuthorId != 0 {
-			result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: model.OriginalAuthorId, PersonType: "original_author"})
-			if result.Error != nil {
-				log.Println("원작 작가 연결 실패")
-				exception.PanicLogging(result.Error)
-			}
+	for _, illustratorId := range model.IllustratorIds {
+		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: illustratorId, PersonType: "illustrator"})
+		if result.Error != nil {
+			log.Println("그림 작가 연결 실패")
+			exception.PanicLogging(result.Error)
+		}
+	}
+
+	for _, originalAuthorId := range model.OriginalAuthorIds {
+		result := seriesRepository.DB.WithContext(ctx).Model(&authorResult).Create(&entity.SeriesAuthor{SeriesId: seriesResult.Id, PersonId: originalAuthorId, PersonType: "original_author"})
+		if result.Error != nil {
+			log.Println("원작 작가 연결 실패")
+			exception.PanicLogging(result.Error)
 		}
 	}
 

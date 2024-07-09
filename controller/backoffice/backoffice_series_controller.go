@@ -70,22 +70,28 @@ func (controller BackofficeSeriesController) CreateSeries(ctx *fiber.Ctx) error 
 			request.IsComplete = false
 		}
 	}
-	if authorId := form.Value["authorId"]; len(authorId) > 0 {
-		u64, _ := strconv.ParseInt(authorId[0], 10, 0)
-		request.AuthorId = uint(u64)
-	}
-	if illustratorId := form.Value["illustratorId"]; len(illustratorId) > 0 {
-		u64, _ := strconv.ParseInt(illustratorId[0], 10, 0)
-		request.IllustratorId = uint(u64)
-	}
-	if originalAuthorId := form.Value["originalAuthorId"]; len(originalAuthorId) > 0 {
-		u64, _ := strconv.ParseInt(originalAuthorId[0], 10, 0)
-		request.OriginalAuthorId = uint(u64)
-	}
 	if publisherIds := form.Value["publisherIds"]; len(publisherIds) > 0 {
 		for _, v := range publisherIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			request.PublisherIds = append(request.PublisherIds, uint(u64))
+		}
+	}
+	if authorIds := form.Value["authorIds"]; len(authorIds) > 0 {
+		for _, v := range authorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.AuthorIds = append(request.AuthorIds, uint(u64))
+		}
+	}
+	if illustratorIds := form.Value["illustratorIds"]; len(illustratorIds) > 0 {
+		for _, v := range illustratorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.IllustratorIds = append(request.IllustratorIds, uint(u64))
+		}
+	}
+	if originalAuthorIds := form.Value["originalAuthorIds"]; len(originalAuthorIds) > 0 {
+		for _, v := range originalAuthorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			request.OriginalAuthorIds = append(request.OriginalAuthorIds, uint(u64))
 		}
 	}
 
@@ -203,6 +209,24 @@ func (controller BackofficeSeriesController) UpdateSeriesById(ctx *fiber.Ctx) er
 		for _, v := range publisherIds {
 			u64, _ := strconv.ParseInt(v, 10, 0)
 			seriesModel.PublisherIds = append(seriesModel.PublisherIds, uint(u64))
+		}
+	}
+	if authorIds := form.Value["authorIds"]; len(authorIds) > 0 {
+		for _, v := range authorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.AuthorIds = append(seriesModel.AuthorIds, uint(u64))
+		}
+	}
+	if illustratorIds := form.Value["illustratorIds"]; len(illustratorIds) > 0 {
+		for _, v := range illustratorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.IllustratorIds = append(seriesModel.IllustratorIds, uint(u64))
+		}
+	}
+	if originalAuthorIds := form.Value["originalAuthorIds"]; len(originalAuthorIds) > 0 {
+		for _, v := range originalAuthorIds {
+			u64, _ := strconv.ParseInt(v, 10, 0)
+			seriesModel.OriginalAuthorIds = append(seriesModel.OriginalAuthorIds, uint(u64))
 		}
 	}
 
