@@ -223,11 +223,13 @@ func (controller BackofficeSeriesController) UpdateSeriesById(ctx *fiber.Ctx) er
 			seriesModel.GenreIds = append(seriesModel.GenreIds, uint(u64))
 		}
 	}
-	if providerIds := form.Value["providerIds"]; len(providerIds) > 0 {
-		for _, v := range providerIds {
-			u64, _ := strconv.ParseInt(v, 10, 0)
-			seriesModel.ProviderIds = append(seriesModel.ProviderIds, uint(u64))
+	if providers := form.Value["providers"]; len(providers) > 0 {
+		err := json.NewDecoder(strings.NewReader(providers[0])).Decode(&seriesModel.Providers)
+
+		if err != nil {
+			exception.PanicLogging(err)
 		}
+		log.Println(seriesModel.Providers)
 	}
 	if publishDayIds := form.Value["publishDayIds"]; len(publishDayIds) > 0 {
 		for _, v := range publishDayIds {
