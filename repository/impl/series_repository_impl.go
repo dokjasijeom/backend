@@ -714,8 +714,10 @@ func (seriesRepository *seriesRepositoryImpl) GetAllCategorySeries(ctx context.C
 	seriesCount := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Where("series_type = ?", seriesType)
 	if len(seriesIds) > 0 {
 		seriesCount = seriesCount.Where("id in (?)", seriesIds)
+		seriesCount.Count(&totalCount)
+	} else {
+		totalCount = 0
 	}
-	seriesCount.Count(&totalCount)
 
 	// series 결과 목록에서 Id 필드값을 제거
 	for i := range seriesResult {
