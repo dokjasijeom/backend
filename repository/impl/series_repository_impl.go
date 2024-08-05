@@ -217,35 +217,17 @@ func (seriesRepository *seriesRepositoryImpl) UpdateSeriesById(ctx context.Conte
 	}
 
 	if len(seriesResult.SeriesProvider) > 0 {
-		if model.Providers != nil {
-			for _, provider := range seriesResult.SeriesProvider {
-				// find seriesResult provider array for providerid
-				providerExist := false
-				for _, p := range model.Providers {
-					if provider.ProviderId == p.ProviderId {
-						providerExist = true
-						break
-					}
-				}
-
-				if !providerExist {
-					result := seriesRepository.DB.WithContext(ctx).Model(&providerResult).Create(&entity.SeriesProvider{SeriesId: seriesResult.Id, ProviderId: provider.ProviderId, Link: provider.Link})
-					if result.Error != nil {
-						log.Println("제공자 연결 실패")
-						exception.PanicLogging(result.Error)
-					}
-				}
-			}
+		for _, provider := range seriesResult.SeriesProvider {
+			log.Println("기존 연결 제공자 아이디: ", provider.Id, "삭제")
+			seriesRepository.DB.WithContext(ctx).Model(&providerResult).Where("id = ?", provider.Id).Delete(&entity.SeriesProvider{})
 		}
-	} else {
-		if model.Providers != nil {
-			for _, provider := range model.Providers {
-				result := seriesRepository.DB.WithContext(ctx).Model(&providerResult).Create(&entity.SeriesProvider{SeriesId: seriesResult.Id, ProviderId: provider.ProviderId, Link: provider.Link})
-				if result.Error != nil {
-					log.Println("제공자 연결 실패")
-					exception.PanicLogging(result.Error)
-				}
-			}
+	}
+
+	for _, provider := range model.Providers {
+		result := seriesRepository.DB.WithContext(ctx).Model(&providerResult).Create(&entity.SeriesProvider{SeriesId: seriesResult.Id, ProviderId: provider.ProviderId, Link: provider.Link})
+		if result.Error != nil {
+			log.Println("제공자 연결 실패")
+			exception.PanicLogging(result.Error)
 		}
 	}
 
