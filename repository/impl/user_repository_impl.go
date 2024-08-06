@@ -60,9 +60,9 @@ func (userRepository *userRepositoryImpl) GetUserByEmailAndSeries(ctx context.Co
 		}
 	}(releaseMode)
 	result := userRepository.DB.WithContext(ctx).Where("email = ?", email).Preload("Profile").Preload("SubscribeProvider").Preload("LikeSeries").Preload("LikeSeries.Genres").Preload("LikeSeries.Publishers").Preload("LikeSeries.PublishDays").Preload("LikeSeries.SeriesAuthors.Person").Preload("LikeSeries.SeriesProvider.Provider").Preload("LikeSeries.Episodes").Preload("RecordSeries", func(db *gorm.DB) *gorm.DB {
-		return db.Order(tablePrefix + "user_record_series.id desc")
+		return db.Where(tablePrefix+"user_record_series.read_completed = ?", false).Order(tablePrefix + "user_record_series.id desc")
 	}).Preload("RecordSeries.Series").Preload("RecordSeries.Series.Genres").Preload("RecordSeries.Series.Episodes").Preload("RecordSeries.Series.SeriesAuthors.Person").Preload("RecordSeries.Series.SeriesProvider.Provider").Preload("RecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
-		return db.Where(tablePrefix+"user_record_series.read_completed = ?", false).Order(tablePrefix + "user_record_series_episodes.episode_number asc")
+		return db.Order(tablePrefix + "user_record_series_episodes.episode_number asc")
 	}).Preload("CompleteRecordSeries", func(db *gorm.DB) *gorm.DB {
 		return db.Where(tablePrefix+"user_record_series.read_completed = ?", true).Order(tablePrefix + "user_record_series.id desc")
 	}).Preload("CompleteRecordSeries.Series").Preload("CompleteRecordSeries.Series.Genres").Preload("CompleteRecordSeries.Series.Episodes").Preload("CompleteRecordSeries.Series.SeriesAuthors.Person").Preload("CompleteRecordSeries.Series.SeriesProvider.Provider").Preload("CompleteRecordSeries.RecordEpisodes", func(db *gorm.DB) *gorm.DB {
