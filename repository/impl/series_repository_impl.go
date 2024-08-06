@@ -487,7 +487,7 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesIdAndTitlesByTitle(ctx co
 
 func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Context, hashId string) (entity.Series, error) {
 	var seriesResult entity.Series
-	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("SeriesProvider.Provider").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Where("hash_id = ?", hashId).First(&seriesResult)
+	result := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("SeriesProvider.Provider").Preload("Genres").Preload("Publishers").Preload("PublishDays").Preload("SeriesAuthors.Person").Preload("Episodes").Where("hash_id = BINARY ?", hashId).First(&seriesResult)
 	if result.Error != nil {
 		return entity.Series{}, result.Error
 	}
