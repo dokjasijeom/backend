@@ -363,7 +363,7 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	var seriesResult []entity.Series
 	var providerResult entity.Provider
 	var seriesIds []uint
-	var episodeIds []uint
+	//var episodeIds []uint
 
 	// 오늘 날짜 가져오기
 	now := time.Now()
