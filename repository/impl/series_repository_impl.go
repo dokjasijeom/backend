@@ -374,10 +374,12 @@ func (seriesRepository *seriesRepositoryImpl) GetNewEpisodeUpdateProviderSeries(
 	yesterday = time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, time.Local)
 
 	// episode 테이블에서 어제 날짜와 오늘 날짜의 데이터를 비교해서 새로운 에피소드가 있는 series id를 중복값 제거해서 가져온다.
-	seriesRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("created_at BETWEEN ? AND ?", yesterday.Format(time.DateTime), now.Format(time.DateTime)).Pluck("id", &episodeIds)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesEpisode{}).Where("episode_id in (?)", episodeIds).Distinct().Pluck("series_id", &seriesIds)
+	// seriesRepository.DB.WithContext(ctx).Model(&entity.Episode{}).Where("created_at BETWEEN ? AND ?", yesterday.Format(time.DateTime), now.Format(time.DateTime)).Pluck("id", &episodeIds)
+	// seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesEpisode{}).Where("episode_id in (?)", episodeIds).Distinct().Pluck("series_id", &seriesIds)
+
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Provider{}).Where("name = ?", provider).First(&providerResult)
-	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("series_id in (?) and provider_id = ?", seriesIds, providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
+	//seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("series_id in (?) and provider_id = ?", seriesIds, providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
+	seriesRepository.DB.WithContext(ctx).Model(&entity.SeriesProvider{}).Where("provider_id = ?", providerResult.Id).Distinct().Pluck("series_id", &seriesIds)
 	seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Scopes(configuration.Paginate(page, pageSize)).Where("id in (?) and series_type = ?", seriesIds, seriesType).Preload("SeriesProvider.Provider").Preload("PublishDays").Preload("Genres").Preload("Publishers").Preload("SeriesAuthors.Person").Find(&seriesResult)
 
 	var totalCount int64
