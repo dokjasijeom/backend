@@ -528,10 +528,19 @@ func (seriesRepository *seriesRepositoryImpl) GetSeriesByHashId(ctx context.Cont
 func (seriesRepository *seriesRepositoryImpl) GetBackofficeAllSeries(ctx context.Context) ([]entity.Series, error) {
 	var seriesResult []entity.Series
 
-	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Find(&seriesResult)
+	err := seriesRepository.DB.WithContext(ctx).Model(&entity.Series{}).Preload("Genres").Preload("SeriesAuthors.Person").Find(&seriesResult)
 	if err.Error != nil {
 		exception.PanicLogging(err.Error)
 		return nil, err.Error
+	}
+
+	for i := range seriesResult {
+		// 작가 유형 반영해서 Authors 필드에 반영
+		seriesResult[i].Authors = make([]entity.Person, 0)
+		for _, sa := range seriesResult[i].SeriesAuthors {
+			sa.Person.PersonType = sa.PersonType
+			seriesResult[i].Authors = append(seriesResult[i].Authors, sa.Person)
+		}
 	}
 
 	return seriesResult, nil
