@@ -11,8 +11,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	slogfiber "github.com/samber/slog-fiber"
+	"log/slog"
 	"os"
 
 	"github.com/dokjasijeom/backend/configuration"
@@ -71,12 +72,16 @@ func main() {
 	backofficePublishDayController := backoffice.NewBackofficePublishDayController(&publishDayService, config)
 	backofficePersonController := backoffice.NewBackofficePersonController(&personService, config)
 
+	// slog
+	customLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
 	app.Use(helmet.New())
 	//app.Use(csrf.New())
 	//app.Use(limiter.New())
-	app.Use(logger.New())
+	//app.Use(logger.New())
+	app.Use(slogfiber.New(customLogger))
 	app.Use(recover.New())
 	app.Use(cors.New())
 	app.Use(favicon.New(favicon.Config{
