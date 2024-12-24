@@ -1,6 +1,7 @@
 package main
 
 import (
+	adapter "github.com/axiomhq/axiom-go/adapters/slog"
 	"github.com/dokjasijeom/backend/controller"
 	"github.com/dokjasijeom/backend/controller/backoffice"
 	"github.com/dokjasijeom/backend/exception"
@@ -72,15 +73,23 @@ func main() {
 	backofficePublishDayController := backoffice.NewBackofficePublishDayController(&publishDayService, config)
 	backofficePersonController := backoffice.NewBackofficePersonController(&personService, config)
 
+	// Setup the Axiom handler
+	axiomHandler, axiomErr := adapter.New()
+	if axiomErr != nil {
+		exception.PanicLogging(axiomErr)
+	}
+
+	defer axiomHandler.Close()
+
 	// slog
-	customLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	customLogger := slog.New(axiomHandler)
+	slog.SetDefault(customLogger)
 
 	// setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
 	app.Use(helmet.New())
 	//app.Use(csrf.New())
 	//app.Use(limiter.New())
-	//app.Use(logger.New())
 	app.Use(slogfiber.New(customLogger))
 	app.Use(recover.New())
 	app.Use(cors.New())
