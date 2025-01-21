@@ -12,7 +12,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samber/lo v1.47.0
-	github.com/samber/slog-fiber v1.17.0
+	github.com/samber/slog-fiber v1.17.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/speps/go-hashids/v2 v2.0.1
 	golang.org/x/crypto v0.32.0
