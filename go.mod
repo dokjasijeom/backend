@@ -3,7 +3,7 @@ module github.com/dokjasijeom/backend
 go 1.23.4
 
 require (
-	github.com/axiomhq/axiom-go v0.21.1
+	github.com/axiomhq/axiom-go v0.22.0
 	github.com/cloudinary/cloudinary-go/v2 v2.9.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofiber/contrib/jwt v1.0.10
