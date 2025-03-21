@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/axiomhq/axiom-go v0.23.0
 	github.com/cloudinary/cloudinary-go/v2 v2.9.1
-	github.com/go-sql-driver/mysql v1.9.0
+	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gofiber/contrib/jwt v1.0.10
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
