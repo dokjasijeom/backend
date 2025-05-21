@@ -3,7 +3,7 @@ module github.com/dokjasijeom/backend
 go 1.23.4
 
 require (
-	github.com/axiomhq/axiom-go v0.23.0
+	github.com/axiomhq/axiom-go v0.23.3
 	github.com/cloudinary/cloudinary-go/v2 v2.9.1
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/gofiber/contrib/jwt v1.1.2
@@ -34,7 +34,7 @@ require (
 	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -42,10 +42,10 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.59.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
-	go.opentelemetry.io/otel v1.34.0 // indirect
-	go.opentelemetry.io/otel/metric v1.34.0 // indirect
-	go.opentelemetry.io/otel/trace v1.34.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
+	go.opentelemetry.io/otel v1.35.0 // indirect
+	go.opentelemetry.io/otel/metric v1.35.0 // indirect
+	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 )
