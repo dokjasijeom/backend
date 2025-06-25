@@ -15,7 +15,7 @@ require (
 	github.com/samber/slog-fiber v1.18.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/speps/go-hashids/v2 v2.0.1
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.39.0
 	golang.org/x/image v0.27.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.0
@@ -47,5 +47,5 @@ require (
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 )
